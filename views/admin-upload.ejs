@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upload Episode — Secondary Materials</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23080e0b'/><path d='M8 22 L8 14 Q8 10 12 10 L12 22' stroke='%23b8f04a' stroke-width='2.5' fill='none' stroke-linecap='round'/><path d='M15 22 L15 12 Q15 8 19 8 L19 22' stroke='%23b8f04a' stroke-width='2.5' fill='none' stroke-linecap='round'/><path d='M22 22 L22 15 Q22 11 26 11 L26 22' stroke='%23b8f04a' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #080e0b; color: #eff0ec; min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: #b8f04a; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    /* Header */
+    .header {
+      background: #0d1810; border-bottom: 1px solid rgba(184,240,74,0.15);
+      padding: 20px 40px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; color: #fff; }
+    .header-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .badge { background: #b8f04a; color: #080e0b; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+    .header-link {
+      font-size: 13px; color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 14px; border-radius: 8px; transition: all 0.2s;
+    }
+    .header-link:hover { color: #b8f04a; border-color: rgba(184,240,74,0.3); text-decoration: none; }
+
+    /* Container */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+
+    /* Alerts */
+    .alert {
+      padding: 14px 20px; border-radius: 10px; margin-bottom: 28px;
+      font-size: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .alert-success { background: rgba(184,240,74,0.1); border: 1px solid rgba(184,240,74,0.25); color: #b8f04a; }
+    .alert-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.2); color: #ff8a8a; }
+
+    /* Sections */
+    .section { margin-bottom: 48px; }
+    .section-title { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 20px; }
+
+    /* Upload Form */
+    .upload-card {
+      background: #0d1810; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 32px;
+    }
+    .upload-form { display: flex; flex-direction: column; gap: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-field.full { grid-column: 1/-1; }
+    .form-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+    .form-input, .form-textarea, .form-select {
+      background: #080e0b; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+      padding: 12px 16px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; color: #eff0ec;
+      outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: rgba(184,240,74,0.4); }
+    .form-input::placeholder { color: rgba(255,255,255,0.25); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    /* File drop zone */
+    .drop-zone {
+      border: 2px dashed rgba(184,240,74,0.3); border-radius: 12px; padding: 40px 24px;
+      text-align: center; cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: #b8f04a; background: rgba(184,240,74,0.05); }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .drop-zone-icon { font-size: 32px; margin-bottom: 12px; }
+    .drop-zone-label { font-size: 15px; color: rgba(255,255,255,0.5); }
+    .drop-zone-label strong { color: #b8f04a; }
+    .drop-zone-hint { font-size: 12px; color: rgba(255,255,255,0.25); margin-top: 8px; }
+    .file-selected { background: rgba(184,240,74,0.08); border: 1px solid rgba(184,240,74,0.2); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+    .file-selected-icon { width: 36px; height: 36px; background: rgba(184,240,74,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .file-selected-info { flex: 1; }
+    .file-selected-name { font-size: 14px; font-weight: 600; color: #fff; }
+    .file-selected-size { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    .btn-submit {
+      background: #b8f04a; color: #080e0b; font-size: 15px; font-weight: 700;
+      padding: 14px 32px; border: none; border-radius: 10px; cursor: pointer;
+      font-family: inherit; transition: background 0.2s; align-self: flex-start;
+    }
+    .btn-submit:hover { background: #9cd93a; }
+    .btn-submit:disabled { background: #1f3320; color: rgba(255,255,255,0.25); cursor: not-allowed; }
+    .btn-submit-uploading { background: #1f3320; color: rgba(255,255,255,0.4); }
+
+    /* Processing pipeline info */
+    .pipeline-steps { display: flex; gap: 12px; margin-top: 20px; }
+    .pipeline-step {
+      flex: 1; background: #080e0b; border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 16px; text-align: center;
+    }
+    .pipeline-step-num { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+    .pipeline-step-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); }
+    .pipeline-step-model { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 4px; font-family: 'Space Mono', monospace; }
+
+    /* Episode list */
+    .episode-list { display: flex; flex-direction: column; gap: 12px; }
+    .episode-item {
+      background: #0d1810; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 20px 24px;
+      display: grid; grid-template-columns: 80px 1fr auto; gap: 20px; align-items: center;
+    }
+    .ep-thumb { width: 80px; height: 45px; object-fit: cover; border-radius: 6px; background: #142019; }
+    .ep-thumb-placeholder { width: 80px; height: 45px; border-radius: 6px; background: #142019; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .ep-info { min-width: 0; }
+    .ep-title { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ep-guest { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+    .ep-status-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+    .status-badge { font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: 600; }
+    .status-draft { background: rgba(184,240,74,0.12); color: #b8f04a; }
+    .status-processing { background: rgba(255,200,50,0.12); color: #ffd666; }
+    .status-transcribing { background: rgba(100,150,255,0.12); color: #7ab3ff; }
+    .status-generating_notes { background: rgba(180,100,255,0.12); color: #c87aff; }
+    .status-generating_thumbnail { background: rgba(255,100,150,0.12); color: #ff7aab; }
+    .status-failed { background: rgba(255,80,80,0.12); color: #ff7a7a; }
+    .status-publish { background: rgba(50,200,120,0.12); color: #50c87a; }
+
+    .ep-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .btn-sm {
+      font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 7px;
+      border: none; cursor: pointer; font-family: inherit; transition: background 0.2s;
+    }
+    .btn-edit { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+    .btn-edit:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .btn-publish-sm { background: #b8f04a; color: #080e0b; }
+    .btn-publish-sm:hover { background: #9cd93a; }
+    .btn-publish-sm:disabled { background: #1a2d1e; color: rgba(255,255,255,0.2); cursor: not-allowed; }
+    .btn-yt { background: rgba(255,50,50,0.12); color: #ff7a7a; }
+    .btn-yt:hover { background: rgba(255,50,50,0.2); }
+
+    /* Edit panel */
+    .edit-panel {
+      background: #0d1810; border: 1px solid rgba(184,240,74,0.2);
+      border-radius: 14px; padding: 28px; margin-top: 12px;
+    }
+    .edit-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .edit-panel-title { font-size: 16px; font-weight: 700; color: #fff; }
+    .btn-close { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 20px; cursor: pointer; padding: 4px; }
+    .btn-close:hover { color: #fff; }
+    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .edit-field { display: flex; flex-direction: column; gap: 5px; }
+    .edit-field.full { grid-column: 1/-1; }
+    .edit-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(255,255,255,0.35); }
+    .edit-input, .edit-textarea {
+      background: #080e0b; border: 1px solid rgba(255,255,255,0.08); border-radius: 7px;
+      padding: 10px 14px; font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+      color: #eff0ec; outline: none; transition: border-color 0.2s;
+    }
+    .edit-input:focus, .edit-textarea:focus { border-color: rgba(184,240,74,0.4); }
+    .edit-textarea { resize: vertical; min-height: 80px; }
+    .btn-save {
+      margin-top: 16px; background: #b8f04a; color: #080e0b; font-size: 14px; font-weight: 700;
+      padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit;
+    }
+    .btn-save:hover { background: #9cd93a; }
+
+    /* Transcript / notes drawer */
+    .ep-expand-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .btn-expand { font-size: 11px; color: rgba(255,255,255,0.35); background: none; border: none; cursor: pointer; font-family: 'Space Mono', monospace; }
+    .btn-expand:hover { color: #b8f04a; }
+    .ep-detail-drawer {
+      margin-top: 12px; background: #080e0b; border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 16px;
+    }
+    .ep-detail-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+    .ep-detail-content { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+    .chapter-list { display: flex; flex-direction: column; gap: 4px; }
+    .chapter-item { display: flex; gap: 12px; font-size: 13px; }
+    .chapter-time { font-family: 'Space Mono', monospace; color: #b8f04a; min-width: 40px; }
+    .chapter-label { color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 768px) {
+      .container { padding: 24px 20px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .edit-grid { grid-template-columns: 1fr; }
+      .episode-item { grid-template-columns: 60px 1fr; gap: 14px; }
+      .ep-thumb, .ep-thumb-placeholder { width: 60px; height: 34px; }
+      .ep-actions { grid-column: 1/-1; }
+      .pipeline-steps { flex-wrap: wrap; }
+      .pipeline-step { min-width: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Secondary Materials — Episode Upload</h1>
+    <div class="header-sub">Upload · Transcribe · Publish</div>
+  </div>
+  <div class="header-right">
+    <a class="header-link" href="/admin/podcast">📡 YouTube Publishing</a>
+    <span class="badge"><%= episodes.length %> episode<%= episodes.length !== 1 ? 's' : '' %></span>
+  </div>
+</div>
+
+<div class="container">
+
+  <% if (success) { %>
+    <div class="alert alert-success">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      <%= success %>
+    </div>
+  <% } else if (error) { %>
+    <div class="alert alert-error">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <%= error %>
+    </div>
+  <% } %>
+
+  <!-- ── Upload Form ───────────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-title">Upload Recording</p>
+    <div class="upload-card">
+      <form class="upload-form" id="upload-form" enctype="multipart/form-data" method="POST" action="/admin/upload">
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label" for="guest_name">Guest Name *</label>
+            <input class="form-input" type="text" id="guest_name" name="guest_name" placeholder="Geert Olbrechts" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="guest_title">Guest Title</label>
+            <input class="form-input" type="text" id="guest_title" name="guest_title" placeholder="Chief Technology Officer">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="guest_company">Guest Company</label>
+            <input class="form-input" type="text" id="guest_company" name="guest_company" placeholder="Umicore">
+          </div>
+        </div>
+
+        <!-- File drop zone -->
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" name="audio_video" accept=".mp4,.m4a,.mp3,.wav,.mov,.webm" required>
+          <div class="drop-zone-icon">🎙️</div>
+          <div class="drop-zone-label"><strong>Click to select</strong> or drag & drop your recording here</div>
+          <div class="drop-zone-hint">Accepted: .mp4, .m4a, .mp3, .wav, .mov, .webm — up to 1GB</div>
+        </div>
+        <!-- Selected file display -->
+        <div id="file-selected" style="display:none">
+          <div class="file-selected">
+            <div class="file-selected-icon">🎵</div>
+            <div class="file-selected-info">
+              <div class="file-selected-name" id="file-name">—</div>
+              <div class="file-selected-size" id="file-size">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline steps (informational) -->
+        <div class="pipeline-steps">
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">Step 1</div>
+            <div class="pipeline-step-label">Transcribe</div>
+            <div class="pipeline-step-model">Gemini 2.0 Flash</div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">Step 2</div>
+            <div class="pipeline-step-label">Show Notes</div>
+            <div class="pipeline-step-model">GPT-4o</div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-step-num">Step 3</div>
+            <div class="pipeline-step-label">Thumbnail</div>
+            <div class="pipeline-step-model">DALL-E 3</div>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" class="btn-submit" id="submit-btn">Upload & Process</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Episodes List ──────────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-title">Episodes</p>
+    <% if (episodes.length === 0) { %>
+      <div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,0.25);font-size:14px;">No episodes yet. Upload your first recording above.</div>
+    <% } else { %>
+      <div class="episode-list">
+        <% episodes.forEach(function(ep) { %>
+          <% const isProcessing = ['processing','transcribing','generating_notes','generating_thumbnail'].includes(ep.status); %>
+          <% const isDraft = ep.status === 'draft'; %>
+          <% const isFailed = ep.status === 'failed'; %>
+          <% const hasVideo = ep.video_url && ep.video_url.trim(); %>
+          <% const isPublished = ep.youtube_url && ep.youtube_url.trim(); %>
+          <div class="episode-item" id="ep-item-<%= ep.id %>">
+
+            <!-- Thumbnail -->
+            <% if (ep.thumbnail_url) { %>
+              <img class="ep-thumb" src="<%= ep.thumbnail_url %>" alt="Episode thumbnail" loading="lazy">
+            <% } else { %>
+              <div class="ep-thumb-placeholder">🎙️</div>
+            <% } %>
+
+            <!-- Info -->
+            <div class="ep-info">
+              <div class="ep-title"><%= ep.title || 'Untitled Episode' %></div>
+              <div class="ep-guest"><%= ep.guest_name %><% if (ep.guest_company) { %> · <%= ep.guest_company %><% } %></div>
+              <div class="ep-status-row">
+                <span class="status-badge status-<%= ep.status %>"><%= ep.status %></span>
+                <% if (ep.processing_error) { %>
+                  <span class="status-badge status-failed" title="<%= ep.processing_error %>">⚠ error</span>
+                <% } %>
+              </div>
+              <% if (isDraft || isFailed) { %>
+              <div class="ep-expand-row">
+                <button class="btn-expand" onclick="toggleDetail(<%= ep.id %>)">▾ Show pipeline output</button>
+              </div>
+              <% } %>
+            </div>
+
+            <!-- Actions -->
+            <div class="ep-actions">
+              <button class="btn-sm btn-edit" onclick="toggleEdit(<%= ep.id %>)">✏ Edit</button>
+              <% if (isPublished) { %>
+                <a class="btn-sm btn-yt" href="<%= ep.youtube_url %>" target="_blank" rel="noopener">↗ YouTube</a>
+              <% } else if (hasVideo) { %>
+                <form method="POST" action="/admin/podcast/publish" style="display:inline">
+                  <input type="hidden" name="episodeId" value="<%= ep.id %>">
+                  <button type="submit" class="btn-sm btn-publish-sm">▶ Publish</button>
+                </form>
+              <% } else { %>
+                <span class="btn-sm btn-publish-sm" style="cursor:default;opacity:0.4" title="Upload a video first">▶ No video</span>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Edit panel (hidden by default) -->
+          <div id="edit-panel-<%= ep.id %>" class="edit-panel" style="display:none">
+            <div class="edit-panel-header">
+              <div class="edit-panel-title">Edit Episode #<%= ep.id %></div>
+              <button class="btn-close" onclick="toggleEdit(<%= ep.id %>)">✕</button>
+            </div>
+            <div class="edit-grid">
+              <div class="edit-field full">
+                <label class="edit-label">Episode Title</label>
+                <input class="edit-input" id="ep-title-<%= ep.id %>" value="<%= (ep.title || '').replace(/"/g, '&quot;') %>">
+              </div>
+              <div class="edit-field full">
+                <label class="edit-label">Description</label>
+                <textarea class="edit-textarea" id="ep-desc-<%= ep.id %>"><%= (ep.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') %></textarea>
+              </div>
+              <div class="edit-field full">
+                <label class="edit-label">5 Key Takeaways (one per line)</label>
+                <textarea class="edit-textarea" id="ep-takeaways-<%= ep.id %>"><%= ((ep.key_takeaways && ep.key_takeaways !== 'null') ? (Array.isArray(JSON.parse(ep.key_takeaways || '[]')) ? JSON.parse(ep.key_takeaways || '[]').join('\n') : '') : '').replace(/</g, '&lt;').replace(/>/g, '&gt;') %></textarea>
+              </div>
+              <div class="edit-field full">
+                <label class="edit-label">3 Pull Quotes (one per line)</label>
+                <textarea class="edit-textarea" id="ep-quotes-<%= ep.id %>"><%= ((ep.pull_quotes && ep.pull_quotes !== 'null') ? (Array.isArray(JSON.parse(ep.pull_quotes || '[]')) ? JSON.parse(ep.pull_quotes || '[]').join('\n') : '') : '').replace(/</g, '&lt;').replace(/>/g, '&gt;') %></textarea>
+              </div>
+              <div class="edit-field">
+                <label class="edit-label">Duration (seconds)</label>
+                <input class="edit-input" type="number" id="ep-duration-<%= ep.id %>" value="<%= ep.duration_seconds || '' %>">
+              </div>
+              <div class="edit-field">
+                <label class="edit-label">Thumbnail URL</label>
+                <input class="edit-input" id="ep-thumburl-<%= ep.id %>" value="<%= (ep.thumbnail_url || '').replace(/"/g, '&quot;') %>">
+              </div>
+            </div>
+            <button class="btn-save" onclick="saveEdit(<%= ep.id %>)">Save Changes</button>
+          </div>
+
+          <!-- Detail drawer (hidden by default) -->
+          <div id="detail-drawer-<%= ep.id %>" class="ep-detail-drawer" style="display:none">
+            <% if (ep.transcript) { %>
+              <div class="ep-detail-label">Transcript</div>
+              <div class="ep-detail-content" style="max-height:160px"><%= ep.transcript.substring(0, 2000) %><% if (ep.transcript.length > 2000) { %>…<% } %></div>
+            <% } %>
+            <% if (ep.key_takeaways && ep.key_takeaways !== 'null') { %>
+              <div class="ep-detail-label" style="margin-top:14px">Key Takeaways</div>
+              <% const takeaways = (function(){ try { return JSON.parse(ep.key_takeaways); } catch(e) { return []; } })(); %>
+              <% takeaways.forEach(function(t) { %>
+                <div style="font-size:13px;color:rgba(255,255,255,0.65);padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">• <%= t %></div>
+              <% }) %>
+            <% } %>
+            <% if (ep.pull_quotes && ep.pull_quotes !== 'null') { %>
+              <div class="ep-detail-label" style="margin-top:14px">Pull Quotes</div>
+              <% const quotes = (function(){ try { return JSON.parse(ep.pull_quotes); } catch(e) { return []; } })(); %>
+              <% quotes.forEach(function(q, i) { %>
+                <div style="font-size:13px;color:#b8f04a;font-style:italic;padding:4px 0">" <%= q %>"</div>
+              <% }) %>
+            <% } %>
+            <% if (ep.chapter_timestamps && ep.chapter_timestamps !== 'null') { %>
+              <div class="ep-detail-label" style="margin-top:14px">Chapter Timestamps</div>
+              <div class="chapter-list">
+                <% const chapters = (function(){ try { return JSON.parse(ep.chapter_timestamps); } catch(e) { return []; } })(); %>
+                <% chapters.forEach(function(ch) { %>
+                  <div class="chapter-item"><span class="chapter-time"><%= ch.time %></span><span class="chapter-label"><%= ch.label %></span></div>
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<script>
+  // ── File drop zone UI ─────────────────────────────────────────────────
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileSelected = document.getElementById('file-selected');
+  const fileNameEl = document.getElementById('file-name');
+  const fileSizeEl = document.getElementById('file-size');
+  const submitBtn = document.getElementById('submit-btn');
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) fileInput.files = e.dataTransfer.files;
+    showFile(fileInput.files[0]);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) showFile(fileInput.files[0]);
+  });
+
+  function showFile(file) {
+    if (!file) return;
+    fileNameEl.textContent = file.name;
+    const mb = (file.size / 1024 / 1024).toFixed(1);
+    fileSizeEl.textContent = mb + ' MB';
+    fileSelected.style.display = 'block';
+    submitBtn.disabled = false;
+  }
+
+  // Disable submit if no file chosen
+  submitBtn.disabled = !fileInput.files.length;
+
+  // ── Submit state ──────────────────────────────────────────────────────
+  document.getElementById('upload-form').addEventListener('submit', () => {
+    submitBtn.disabled = true;
+    submitBtn.classList.add('btn-submit-uploading');
+    submitBtn.textContent = '⏳ Uploading & processing…';
+  });
+
+  // ── Edit panel toggle ─────────────────────────────────────────────────
+  function toggleEdit(id) {
+    const panel = document.getElementById('edit-panel-' + id);
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // ── Detail drawer toggle ──────────────────────────────────────────────
+  function toggleDetail(id) {
+    const drawer = document.getElementById('detail-drawer-' + id);
+    drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // ── Save edit ─────────────────────────────────────────────────────────
+  async function saveEdit(id) {
+    const title = document.getElementById('ep-title-' + id).value;
+    const description = document.getElementById('ep-desc-' + id).value;
+    const keyTakeawaysRaw = document.getElementById('ep-takeaways-' + id).value;
+    const pullQuotesRaw = document.getElementById('ep-quotes-' + id).value;
+    const durationSeconds = parseInt(document.getElementById('ep-duration-' + id).value) || null;
+    const thumbnailUrl = document.getElementById('ep-thumburl-' + id).value;
+
+    const keyTakeaways = keyTakeawaysRaw.split('\n').filter(l => l.trim()).map(l => l.trim());
+    const pullQuotes = pullQuotesRaw.split('\n').filter(l => l.trim()).map(l => l.trim());
+
+    const body = { title, description };
+    if (keyTakeaways.length) body.key_takeaways = JSON.stringify(keyTakeaways);
+    if (pullQuotes.length) body.pull_quotes = JSON.stringify(pullQuotes);
+    if (durationSeconds) body.duration_seconds = durationSeconds;
+    if (thumbnailUrl) body.thumbnail_url = thumbnailUrl;
+
+    try {
+      const res = await fetch(`/admin/podcast/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        // Collapse edit panel and reload
+        toggleEdit(id);
+        location.reload();
+      } else {
+        const d = await res.json();
+        alert('Save failed: ' + (d.error || 'unknown error'));
+      }
+    } catch (err) {
+      alert('Network error: ' + err.message);
+    }
+  }
+</script>
+
+</body>
+</html>

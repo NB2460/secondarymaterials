@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Podcast Admin — Secondary Materials</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23080e0b'/><path d='M8 22 L8 14 Q8 10 12 10 L12 22' stroke='%23b8f04a' stroke-width='2.5' fill='none' stroke-linecap='round'/><path d='M15 22 L15 12 Q15 8 19 8 L19 22' stroke='%23b8f04a' stroke-width='2.5' fill='none' stroke-linecap='round'/><path d='M22 22 L22 15 Q22 11 26 11 L26 22' stroke='%23b8f04a' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #080e0b; color: #eff0ec; min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    a { color: #b8f04a; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .header {
+      background: #0d1810; border-bottom: 1px solid rgba(184,240,74,0.15);
+      padding: 20px 40px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; color: #fff; }
+    .header-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .badge { background: #b8f04a; color: #080e0b; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+    .feed-link {
+      font-size: 13px; color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 14px; border-radius: 8px; transition: all 0.2s;
+    }
+    .feed-link:hover { color: #b8f04a; border-color: rgba(184,240,74,0.3); text-decoration: none; }
+
+    /* Container */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 40px; }
+
+    /* Alerts */
+    .alert {
+      padding: 14px 20px; border-radius: 10px; margin-bottom: 28px;
+      font-size: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .alert-success { background: rgba(184,240,74,0.1); border: 1px solid rgba(184,240,74,0.25); color: #b8f04a; }
+    .alert-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.2); color: #ff8a8a; }
+
+    /* KPI row */
+    .kpi-row { display: flex; gap: 16px; margin-bottom: 36px; }
+    .kpi { background: #0d1810; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 20px 24px; flex: 1; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: #b8f04a; line-height: 1; }
+    .kpi-label { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Episode table */
+    .section-title { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; background: #0d1810; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+    thead th {
+      padding: 12px 20px; text-align: left; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    tbody td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(184,240,74,0.04); }
+
+    .ep-title { font-weight: 600; color: #fff; max-width: 280px; }
+    .ep-guest { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 3px; }
+    .ep-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+    .tag-draft { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); }
+    .tag-published { background: rgba(184,240,74,0.15); color: #b8f04a; }
+    .yt-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(255,50,50,0.12); color: #ff7a7a; }
+    .duration { font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.35); }
+    .date { font-size: 13px; color: rgba(255,255,255,0.35); white-space: nowrap; }
+
+    .btn-publish {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #b8f04a; color: #080e0b; font-size: 13px; font-weight: 700;
+      padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+      transition: background 0.2s; font-family: inherit;
+    }
+    .btn-publish:hover { background: #9cd93a; }
+    .btn-publish:disabled { background: #2a3f2e; color: rgba(255,255,255,0.25); cursor: not-allowed; }
+
+    .empty { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.3); font-size: 15px; }
+
+    @media (max-width: 700px) {
+      .header { padding: 16px 20px; }
+      .container { padding: 24px 20px; }
+      .kpi-row { flex-wrap: wrap; }
+      table { font-size: 13px; }
+      .ep-title { max-width: 180px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Secondary Materials — Podcast Admin</h1>
+    <div class="header-sub">YouTube publishing + RSS feed management</div>
+  </div>
+  <div class="header-right">
+    <a class="feed-link" href="/admin/podcast/feed.xml" target="_blank">📡 RSS Feed</a>
+    <span class="badge"><%= episodes.length %> episode<%= episodes.length !== 1 ? 's' : '' %></span>
+  </div>
+</div>
+
+<div class="container">
+
+  <% if (success) { %>
+    <div class="alert alert-success">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      Episode published to YouTube successfully! Email notification sent.
+    </div>
+  <% } else if (error) { %>
+    <div class="alert alert-error">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <%= error %>
+    </div>
+  <% } %>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-value"><%= episodes.length %></div>
+      <div class="kpi-label">Total Episodes</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value"><%= published %></div>
+      <div class="kpi-label">Published</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value"><%= drafts %></div>
+      <div class="kpi-label">Drafts</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value" style="font-size:20px;padding-top:6px;">
+        <a href="/admin/podcast/feed.xml" target="_blank" style="color:#b8f04a;font-size:13px;">📡 View RSS</a>
+      </div>
+      <div class="kpi-label">Feed</div>
+    </div>
+  </div>
+
+  <!-- Episode table -->
+  <p class="section-title">Episodes</p>
+  <% if (episodes.length === 0) { %>
+    <div class="empty">No episodes yet. Add rows to the podcast_episodes table to get started.</div>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Episode</th>
+          <th>Guest</th>
+          <th>Duration</th>
+          <th>YouTube</th>
+          <th>Published</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% episodes.forEach(function(ep) { %>
+          <% const isPublished = ep.youtube_url && ep.youtube_url.trim(); %>
+          <% const videoId = isPublished ? ep.youtube_url.match(/youtu.be\/([^?]+)/)?.[1] : null; %>
+          <tr>
+            <td>
+              <div class="ep-title"><%= ep.title %></div>
+              <% if (ep.itunes_summary) { %>
+                <div class="ep-guest" style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= ep.itunes_summary %></div>
+              <% } %>
+            </td>
+            <td>
+              <div style="font-size:13px;color:rgba(255,255,255,0.75)"><%= ep.guest_name %></div>
+              <% if (ep.guest_company) { %>
+                <div class="ep-guest"><%= ep.guest_company %></div>
+              <% } %>
+            </td>
+            <td>
+              <% if (ep.duration_seconds) { %>
+                <span class="duration"><%= Math.floor(ep.duration_seconds / 60) %> min</span>
+              <% } else { %>
+                <span class="duration" style="color:rgba(255,255,255,0.2)">—</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (isPublished) { %>
+                <% if (videoId) { %>
+                  <a class="yt-badge" href="<%= ep.youtube_url %>" target="_blank" rel="noopener">
+                    <%= videoId.substring(0, 8) %>…
+                  </a>
+                <% } else { %>
+                  <span class="tag tag-published">✓ Published</span>
+                <% } %>
+              <% } else { %>
+                <span class="tag tag-draft">Draft</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (ep.published_at) { %>
+                <span class="date"><%= new Date(ep.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+              <% } else { %>
+                <span class="date" style="color:rgba(255,255,255,0.2)">—</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (isPublished) { %>
+                <a class="btn-publish" href="<%= ep.youtube_url %>" target="_blank" rel="noopener" style="background:transparent;color:#b8f04a;border:1px solid rgba(184,240,74,0.3)">
+                  ↗ View
+                </a>
+              <% } else if (ep.video_url) { %>
+                <form method="POST" action="/admin/podcast/publish" style="display:inline">
+                  <input type="hidden" name="episodeId" value="<%= ep.id %>">
+                  <button type="submit" class="btn-publish">
+                    ▶ Publish to YouTube
+                  </button>
+                </form>
+              <% } else { %>
+                <button class="btn-publish" disabled title="Set video_url before publishing">▶ No video file</button>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+
+</div>
+
+</body>
+</html>

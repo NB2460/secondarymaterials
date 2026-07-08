@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-manifest.us — EPA Form 8700-22 Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080e0b;
+      --surface: #0f1a13;
+      --surface2: #142218;
+      --border: #1c3323;
+      --lime: #b8f04a;
+      --lime-dim: #8ab835;
+      --text: #e8f5e0;
+      --text-dim: #6a8a63;
+      --mono: 'Space Mono', monospace;
+      --sans: 'Space Grotesk', sans-serif;
+      --radius: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,14,11,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--lime);
+      letter-spacing: -0.5px;
+    }
+    .nav-logo span { color: var(--text-dim); font-weight: 400; }
+    .nav-tag {
+      margin-left: auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--lime);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      letter-spacing: 0.05em;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--lime);
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--text-dim);
+      max-width: 540px;
+      margin: 0 auto 40px;
+    }
+    .hero-pills {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .pill.active { border-color: var(--lime-dim); color: var(--lime); }
+    /* SECTION DIVIDER */
+    .section-divider {
+      max-width: 800px;
+      margin: 0 auto 40px;
+      padding: 0 24px;
+    }
+    .section-divider hr {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+    /* UPLOAD ZONE */
+    .upload-section {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 64px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--lime-dim);
+      background: rgba(184,240,74,0.04);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .upload-zone h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .upload-zone p {
+      color: var(--text-dim);
+      font-size: 14px;
+      font-family: var(--mono);
+    }
+    .upload-btn {
+      display: inline-block;
+      margin-top: 20px;
+      background: var(--lime);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 24px;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+    }
+    .upload-btn:hover { background: var(--lime-dim); }
+    /* ANALYSIS STATE */
+    .analyzing {
+      display: none;
+      text-align: center;
+      padding: 64px 24px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .analyzing.active { display: block; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--lime);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .analyzing h3 { font-size: 20px; margin-bottom: 8px; }
+    .analyzing p { color: var(--text-dim); font-family: var(--mono); font-size: 13px; }
+    /* RESULTS */
+    .results {
+      display: none;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .results.active { display: block; }
+    .results-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .results-header h2 { font-size: 24px; }
+    .badge-rcra {
+      background: rgba(184,240,74,0.15);
+      color: var(--lime);
+      border: 1px solid var(--lime-dim);
+      border-radius: 6px;
+      padding: 2px 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    /* MATERIALS GRID */
+    .materials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .material-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .material-card .mat-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .material-card .mat-wt {
+      font-family: var(--mono);
+      font-size: 20px;
+      color: var(--lime);
+      font-weight: 700;
+    }
+    .material-card .mat-wt span { font-size: 12px; color: var(--text-dim); font-weight: 400; }
+    .material-card .mat-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    /* DOT INFO */
+    .dot-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--lime);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .dot-info h4 {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--lime);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .dot-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .dot-item { }
+    .dot-item .lbl { font-size: 11px; color: var(--text-dim); font-family: var(--mono); text-transform: uppercase; }
+    .dot-item .val { font-size: 14px; font-weight: 600; margin-top: 2px; }
+    /* EPA FORM */
+    .form-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .form-section-header {
+      background: var(--surface2);
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-section-header h3 { font-size: 14px; font-family: var(--mono); color: var(--lime); }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 20px;
+    }
+    .form-grid.col-1 { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-group input, .form-group textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--lime-dim);
+    }
+    .form-group textarea { resize: vertical; min-height: 64px; }
+    .form-group input[readonly] { color: var(--lime-dim); }
+    /* CTA */
+    .cta-area {
+      text-align: center;
+      padding: 32px;
+    }
+    .btn-primary {
+      background: var(--lime);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { background: var(--lime-dim); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    /* LEAD GATE */
+    .lead-gate {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .lead-gate.active { display: block; }
+    .lead-gate h4 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    .lead-gate p {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+    .lead-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .lead-form .form-group { }
+    .lead-submit {
+      background: var(--lime);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    .lead-submit:hover { background: var(--lime-dim); }
+    /* MARQUEE STRIP */
+    .marquee-strip {
+      background: var(--lime);
+      padding: 10px 0;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    .marquee-inner {
+      display: flex;
+      gap: 40px;
+      animation: marquee 20s linear infinite;
+      white-space: nowrap;
+    }
+    .marquee-item {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--bg);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    /* PROGRESS STEPS */
+    .steps-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      position: relative;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .step.active .step-circle {
+      background: var(--lime);
+      border-color: var(--lime);
+      color: var(--bg);
+    }
+    .step.done .step-circle {
+      background: var(--surface2);
+      border-color: var(--lime-dim);
+      color: var(--lime);
+    }
+    .step-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    .step.active .step-label { color: var(--lime); }
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 8px;
+      margin-bottom: 18px;
+    }
+    .step-connector.done { background: var(--lime-dim); }
+    /* ERROR STATE */
+    .error-msg {
+      display: none;
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.3);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      color: #ff6b6b;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .error-msg.active { display: block; }
+    /* SUCCESS STATE */
+    .success-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8,14,11,0.9);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 32px;
+    }
+    .success-overlay.active { display: flex; }
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    .success-overlay h2 { font-size: 28px; margin-bottom: 8px; }
+    .success-overlay p { color: var(--text-dim); margin-bottom: 24px; }
+    /* SCAN PREVIEW */
+    .scan-preview {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .scan-preview img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      display: block;
+    }
+    .scan-overlay-label {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(8,14,11,0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--lime);
+    }
+    /* Responsive */
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .dot-row { grid-template-columns: 1fr 1fr; }
+      .lead-form { grid-template-columns: 1fr; }
+      .hero h1 { letter-spacing: -1px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">e-manifest<span>.us</span></div>
+  <div class="nav-tag">EPA Form 8700-22</div>
+</nav>
+
+<!-- MARQUEE STRIP -->
+<div class="marquee-strip">
+  <div class="marquee-inner">
+    <span class="marquee-item">EPA RCRA Compliant</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">AI-Powered Scanning</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">Pre-filled Form 8700-22</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">Download & Sign</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">EPA RCRA Compliant</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">AI-Powered Scanning</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">Pre-filled Form 8700-22</span>
+    <span class="marquee-item">•</span>
+    <span class="marquee-item">Download & Sign</span>
+    <span class="marquee-item">•</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">EPA Form 8700-22 Generator</div>
+  <h1>Generate EPA<br /><em>e-Manifests</em> in 30 seconds</h1>
+  <p>Scan your industrial waste with AI. Auto-populate a pre-filled EPA RCRA Uniform Hazardous Waste Manifest. Download, sign, and file.</p>
+  <div class="hero-pills">
+    <span class="pill active">WasteScope AI</span>
+    <span class="pill">EPA Form 8700-22</span>
+    <span class="pill">PDF Download</span>
+  </div>
+</div>
+
+<!-- STEPS BAR -->
+<div class="steps-bar">
+  <div class="step active" id="step1">
+    <div class="step-circle">1</div>
+    <div class="step-label">Upload Photo</div>
+  </div>
+  <div class="step-connector" id="conn1"></div>
+  <div class="step" id="step2">
+    <div class="step-circle">2</div>
+    <div class="step-label">AI Analysis</div>
+  </div>
+  <div class="step-connector" id="conn2"></div>
+  <div class="step" id="step3">
+    <div class="step-circle">3</div>
+    <div class="step-label">Get Manifest</div>
+  </div>
+</div>
+
+<!-- ERROR DISPLAY -->
+<div class="section-divider" style="max-width:800px; margin: 0 auto; padding: 0 24px;">
+  <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<!-- UPLOAD SECTION -->
+<div class="upload-section" id="uploadSection">
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="photoInput" accept="image/*" />
+    <span class="upload-icon">📷</span>
+    <h3>Drop your waste photo here</h3>
+    <p>or click to browse • JPG, PNG, WEBP • max 10MB</p>
+    <button class="upload-btn" onclick="document.getElementById('photoInput').click()">Scan Your Waste</button>
+  </div>
+</div>
+
+<!-- ANALYSIS STATE -->
+<div class="analyzing" id="analyzingSection">
+  <div class="spinner"></div>
+  <h3 id="analyzeLabel">Analyzing waste composition…</h3>
+  <p>WasteScope AI is identifying materials, hazards, and EPA waste codes.</p>
+</div>
+
+<!-- RESULTS SECTION -->
+<div class="results" id="resultsSection">
+
+  <!-- Scan Preview -->
+  <div class="scan-preview" id="scanPreview"></div>
+
+  <!-- Results Header -->
+  <div class="results-header">
+    <h2>Waste Analysis Results</h2>
+    <span class="badge-rcra" id="rcraBadge">RCRA HAZARDOUS</span>
+  </div>
+
+  <!-- Materials Grid -->
+  <div class="materials-grid" id="materialsGrid"></div>
+
+  <!-- DOT Info -->
+  <div class="dot-info" id="dotInfo">
+    <h4>U.S. DOT Transportation Data</h4>
+    <div class="dot-row" id="dotRow"></div>
+  </div>
+
+  <!-- Lead Gate (optional) -->
+  <div class="lead-gate" id="leadGate">
+    <h4>Almost there — enter your details to generate the manifest</h4>
+    <p>We'll pre-fill your info for future manifests too.</p>
+    <div class="lead-form" id="leadForm">
+      <div class="form-group">
+        <label>EPA ID Number</label>
+        <input type="text" id="leadEpaId" placeholder="CAD123456789" />
+      </div>
+      <div class="form-group">
+        <label>Company Name</label>
+        <input type="text" id="leadCompany" placeholder="Acme Mfg" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="leadEmail" placeholder="env@acmemfg.com" />
+      </div>
+    </div>
+    <button class="lead-submit" id="leadSubmitBtn" onclick="submitLeadAndGenerate()">Continue to Manifest →</button>
+  </div>
+
+  <!-- EPA Form -->
+  <div class="form-section" id="formSection">
+    <div class="form-section-header">
+      <h3>§ EPA Form 8700-22 — Pre-filled from Scan</h3>
+    </div>
+    <div class="form-grid" style="padding: 20px;">
+      <div class="form-group">
+        <label>Manifest Tracking Number</label>
+        <input type="text" id="fManifestNum" readonly />
+      </div>
+      <div class="form-group">
+        <label>Generator EPA ID</label>
+        <input type="text" id="fGeneratorEpaId" placeholder="CAD123456789" />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Generator Name</label>
+        <input type="text" id="fGeneratorName" placeholder="Acme Manufacturing Co." />
+      </div>
+      <div class="form-group">
+        <label>Generator Address</label>
+        <input type="text" id="fGeneratorAddress" placeholder="123 Industrial Blvd, City, ST 99999" />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Designated Facility EPA ID</label>
+        <input type="text" id="fFacilityId" placeholder="CAD987654321" />
+      </div>
+      <div class="form-group">
+        <label>Designated Facility Name</label>
+        <input type="text" id="fFacilityName" placeholder="EnviroServ Treatment Center" />
+      </div>
+    </div>
+    <div class="form-grid col-1">
+      <div class="form-group">
+        <label>Designated Facility Address</label>
+        <input type="text" id="fFacilityAddress" placeholder="789 cleanup rd, city, ST 99999" />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Transporter 1 EPA ID</label>
+        <input type="text" id="fTrans1Id" placeholder="CAD555555555" />
+      </div>
+      <div class="form-group">
+        <label>Transporter 1 Name</label>
+        <input type="text" id="fTrans1Name" placeholder="Clean Haulers Inc." />
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Total Quantity (lbs)</label>
+        <input type="number" id="fTotalQty" placeholder="250" />
+      </div>
+      <div class="form-group">
+        <label>Container Type</label>
+        <select id="fContainerType" style="background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-family: var(--sans); font-size: 14px; color: var(--text); width: 100%;">
+          <option value="DT">DT — Drum, Tapered</option>
+          <option value="DF">DF — Drum, Flat</option>
+          <option value="CY">CY — Cylinder</option>
+          <option value="CM">CM — Crate/Carton</option>
+          <option value="BA">BA — Burlap/Canvas</option>
+          <option value="BB">BB — Barrel/Barrel Bulk</option>
+          <option value="TC">TC — Tank Truck/Container</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid col-1">
+      <div class="form-group">
+        <label>Special Handling Instructions</label>
+        <textarea id="fSpecialHandling" rows="2" placeholder="Leak-proof containers required. Keep upright."></textarea>
+      </div>
+    </div>
+    <div class="form-grid col-1" style="padding-top: 0;">
+      <div class="form-group">
+        <label>Waste Codes (from scan)</label>
+        <input type="text" id="fWasteCodes" readonly style="color: var(--lime-dim);" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate CTA -->
+  <div class="cta-area">
+    <button class="btn-primary" id="generateBtn" onclick="generatePDF()">
+      <span>⬇</span> Download EPA Manifest PDF
+    </button>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">✅</div>
+  <h2>Manifest Ready</h2>
+  <p id="successMsg">Your EPA Form 8700-22 has been generated and downloaded.</p>
+  <button class="btn-primary" onclick="location.reload()">Generate Another Manifest</button>
+</div>
+
+<script>
+  // State
+  let scanResult = null;
+  let scanId = null;
+
+  // DOM refs
+  const uploadSection = document.getElementById('uploadSection');
+  const analyzingSection = document.getElementById('analyzingSection');
+  const resultsSection = document.getElementById('resultsSection');
+  const errorMsg = document.getElementById('errorMsg');
+  const leadGate = document.getElementById('leadGate');
+  const leadSubmitBtn = document.getElementById('leadSubmitBtn');
+  const generateBtn = document.getElementById('generateBtn');
+
+  // Step progress helpers
+  function setStep(n, state) {
+    const stepEl = document.getElementById(`step${n}`);
+    stepEl.className = `step ${state}`;
+    const connEl = document.getElementById(`conn${n}`);
+    if (connEl) connEl.className = `step-connector ${state === 'done' ? 'done' : ''}`;
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('active');
+  }
+  function clearError() {
+    errorMsg.classList.remove('active');
+    errorMsg.textContent = '';
+  }
+
+  // Drag & drop
+  const uploadZone = document.getElementById('uploadZone');
+  ['dragenter','dragover'].forEach(e => {
+    uploadZone.addEventListener(e, ev => {
+      ev.preventDefault();
+      uploadZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave','drop'].forEach(e => {
+    uploadZone.addEventListener(e, ev => {
+      ev.preventDefault();
+      uploadZone.classList.remove('drag-over');
+    });
+  });
+  uploadZone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  // File input
+  document.getElementById('photoInput').addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  async function handleFile(file) {
+    if (!file.type.startsWith('image/')) {
+      showError('Please upload an image file (JPG, PNG, WEBP).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showError('File too large. Maximum size is 10MB.');
+      return;
+    }
+    clearError();
+
+    // Show analysis spinner
+    uploadSection.style.display = 'none';
+    analyzingSection.classList.add('active');
+    document.getElementById('analyzeLabel').textContent = 'Uploading and analyzing…';
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    // Grab lead values if gate is filled
+    const epaId = document.getElementById('leadEpaId')?.value || '';
+    const genName = document.getElementById('leadCompany')?.value || '';
+    formData.append('generator_epa_id', epaId);
+    formData.append('generator_name', genName);
+
+    try {
+      const res = await fetch('/api/scan', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Server error ${res.status}`);
+      }
+      scanResult = await res.json();
+      scanId = scanResult.scan_id;
+
+      // Pre-fill lead gate if returned
+      if (scanResult.generator_epa_id) document.getElementById('leadEpaId').value = scanResult.generator_epa_id;
+
+      analyzingSection.classList.remove('active');
+      showResults(scanResult);
+    } catch (err) {
+      analyzingSection.classList.remove('active');
+      uploadSection.style.display = '';
+      showError('Analysis failed: ' + err.message);
+    }
+  }
+
+  function showResults(data) {
+    setStep(1, 'done');
+    setStep(2, 'done');
+    setStep(3, 'active');
+
+    resultsSection.classList.add('active');
+
+    // Photo preview
+    const preview = document.getElementById('scanPreview');
+    preview.innerHTML = `<img src="${data.photo_url}" alt="Waste scan" />
+      <div class="scan-overlay-label">WasteScope Scan ID: ${data.scan_id}</div>`;
+
+    // RCRA badge
+    const rcra = document.getElementById('rcraBadge');
+    if (data.is_rcra_hazardous) {
+      rcra.textContent = '⚠ RCRA HAZARDOUS WASTE';
+      rcra.style.borderColor = '#ff6b6b';
+      rcra.style.color = '#ff6b6b';
+      rcra.style.background = 'rgba(255,80,80,0.1)';
+    } else {
+      rcra.textContent = 'NON-HAZARDOUS';
+      rcra.style.borderColor = '#444';
+      rcra.style.color = '#888';
+      rcra.style.background = 'rgba(100,100,100,0.1)';
+    }
+
+    // Materials grid
+    const grid = document.getElementById('materialsGrid');
+    grid.innerHTML = '';
+    const materials = data.materials || [];
+    if (materials.length === 0) {
+      grid.innerHTML = `<div class="material-card" style="grid-column: 1/-1">
+        <div class="mat-name">Total Estimated Weight</div>
+        <div class="mat-wt">${data.total_estimated_weight_lbs || '?'} <span>lbs</span></div>
+      </div>`;
+    } else {
+      materials.forEach(m => {
+        grid.innerHTML += `<div class="material-card">
+          <div class="mat-name">${m.name}</div>
+          <div class="mat-wt">${m.estimated_weight_lbs || '?'} <span>lbs</span></div>
+          <div class="mat-desc">${m.description || ''}</div>
+        </div>`;
+      });
+      if (data.total_estimated_weight_lbs) {
+        grid.innerHTML += `<div class="material-card" style="background: rgba(184,240,74,0.08); border-color: var(--lime-dim);">
+          <div class="mat-name" style="color: var(--lime)">Total</div>
+          <div class="mat-wt" style="font-size: 28px;">${data.total_estimated_weight_lbs} <span>lbs</span></div>
+        </div>`;
+      }
+    }
+
+    // DOT info
+    const dot = data.dot_info || {};
+    document.getElementById('dotRow').innerHTML = `
+      <div class="dot-item"><div class="lbl">Hazard Class</div><div class="val">${dot.hazard_class || '9'}</div></div>
+      <div class="dot-item"><div class="lbl">UN Number</div><div class="val">${dot.un_number || 'UN3077'}</div></div>
+      <div class="dot-item"><div class="lbl">Packing Group</div><div class="val">${dot.packing_group || 'III'}</div></div>
+      <div class="dot-item" style="grid-column: 1/-1"><div class="lbl">Proper Shipping Name</div><div class="val" style="font-size:12px">${dot.shipping_name || 'Hazardous waste, n.o.s.'}</div></div>
+    `;
+
+    // Pre-fill form
+    const mtNum = generateTrackingNumber();
+    document.getElementById('fManifestNum').value = mtNum;
+    document.getElementById('fTotalQty').value = data.total_estimated_weight_lbs || '';
+    document.getElementById('fWasteCodes').value = (dot.waste_codes || data.waste_codes || []).join(', ');
+    document.getElementById('fSpecialHandling').value = data.notes || '';
+
+    if (data.generator_epa_id) document.getElementById('fGeneratorEpaId').value = data.generator_epa_id;
+    if (data.generator_name) document.getElementById('fGeneratorName').value = data.generator_name;
+
+    // Show lead gate
+    leadGate.classList.add('active');
+    generateBtn.disabled = true;
+    leadSubmitBtn.textContent = 'Generate Manifest →';
+  }
+
+  function generateTrackingNumber() {
+    return Math.random().toString(36).substring(2, 12).toUpperCase();
+  }
+
+  async function submitLeadAndGenerate() {
+    // Save lead data into form fields
+    const epaId = document.getElementById('leadEpaId').value;
+    const company = document.getElementById('leadCompany').value;
+    if (epaId) document.getElementById('fGeneratorEpaId').value = epaId;
+    if (company) document.getElementById('fGeneratorName').value = company;
+
+    leadGate.classList.remove('active');
+    generateBtn.disabled = false;
+    await generatePDF();
+  }
+
+  async function generatePDF() {
+    const btn = generateBtn;
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Generating PDF…';
+
+    const payload = {
+      scan_id: scanId,
+      manifest_tracking_number: document.getElementById('fManifestNum').value,
+      generator_epa_id: document.getElementById('fGeneratorEpaId').value,
+      generator_name: document.getElementById('fGeneratorName').value,
+      generator_address: document.getElementById('fGeneratorAddress').value || '',
+      designated_facility_id: document.getElementById('fFacilityId').value,
+      designated_facility_name: document.getElementById('fFacilityName').value,
+      designated_facility_address: document.getElementById('fFacilityAddress').value || '',
+      transporter1_epa_id: document.getElementById('fTrans1Id').value,
+      transporter1_name: document.getElementById('fTrans1Name').value,
+      total_quantity_lbs: parseFloat(document.getElementById('fTotalQty').value) || 0,
+      container_type: document.getElementById('fContainerType').value,
+      special_handling: document.getElementById('fSpecialHandling').value,
+      waste_codes: (document.getElementById('fWasteCodes').value || '').split(',').map(s => s.trim()).filter(Boolean),
+    };
+
+    try {
+      const res = await fetch('/api/manifest/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EPA-Manifest-${payload.manifest_tracking_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      btn.innerHTML = '<span>✅</span> Downloaded!';
+      document.getElementById('successMsg').textContent = `EPA Manifest ${payload.manifest_tracking_number} downloaded. Print, sign, and file with your TSDF.`;
+      document.getElementById('successOverlay').classList.add('active');
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>⬇</span> Download EPA Manifest PDF';
+      showError('PDF generation failed: ' + err.message);
+    }
+  }
+</script>
+</body>
+</html>

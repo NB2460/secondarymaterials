@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waste Scanner — WastetideOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232d5a3d'/><path d='M16 6 L26 22 H6 Z' fill='%23f4f0e8'/></svg>">
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    /* === SCAN PAGE SPECIFIC === */
+    .scan-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scan-nav {
+      background: var(--dark);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .scan-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .scan-nav-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .scan-nav-badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      padding: 4px 10px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+    }
+
+    .scan-main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 40px 80px;
+      width: 100%;
+    }
+
+    .scan-page-header {
+      margin-bottom: 40px;
+    }
+
+    .scan-page-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+
+    .scan-page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .scan-page-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.65;
+    }
+
+    /* === UPLOAD ZONE === */
+    .upload-area {
+      border: 2px dashed var(--border-dark);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      padding: 64px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .upload-area:hover,
+    .upload-area.drag-over {
+      border-color: var(--green);
+      background: rgba(45, 90, 61, 0.04);
+    }
+
+    .upload-area.has-preview {
+      padding: 0;
+      overflow: hidden;
+      border-style: solid;
+      border-color: var(--green);
+    }
+
+    .upload-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--green);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      color: #fff;
+    }
+
+    .upload-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+
+    .upload-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .upload-btn {
+      display: inline-block;
+      background: var(--green);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .upload-btn:hover { background: var(--green-light); }
+
+    #photo-input { display: none; }
+
+    .preview-wrap {
+      position: relative;
+      display: none;
+    }
+
+    .preview-wrap.visible { display: block; }
+
+    .preview-img {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      display: block;
+      border-radius: calc(var(--radius-xl) - 2px);
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: calc(var(--radius-xl) - 2px);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .preview-wrap:hover .preview-overlay { opacity: 1; }
+
+    .preview-change-btn {
+      background: #fff;
+      color: var(--dark);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .upload-placeholder { }
+    .upload-placeholder.hidden { display: none; }
+
+    /* === ANALYZE BUTTON === */
+    .analyze-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .analyze-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+      background: var(--green-light);
+      transform: translateY(-1px);
+    }
+
+    .analyze-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .analyze-hint {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* === LOADING === */
+    .loading-state {
+      display: none;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 32px;
+    }
+
+    .loading-state.visible { display: flex; }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+
+    .loading-step {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    /* === ERROR === */
+    .error-state {
+      display: none;
+      padding: 20px 28px;
+      background: #fff5f5;
+      border: 1px solid #fca5a5;
+      border-radius: var(--radius-lg);
+      margin-bottom: 32px;
+    }
+
+    .error-state.visible { display: block; }
+
+    .error-title {
+      font-weight: 700;
+      color: #dc2626;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .error-msg {
+      font-size: 14px;
+      color: #991b1b;
+    }
+
+    /* === RESULTS === */
+    .results-section {
+      display: none;
+    }
+
+    .results-section.visible { display: block; }
+
+    .results-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      gap: 24px;
+    }
+
+    .results-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+
+    .results-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 520px;
+      line-height: 1.6;
+    }
+
+    .confidence-badge {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .confidence-badge.high { background: #d1fae5; color: #065f46; }
+    .confidence-badge.medium { background: #fef3c7; color: #92400e; }
+    .confidence-badge.low { background: #fee2e2; color: #991b1b; }
+
+    /* Summary cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+    }
+
+    .summary-card.highlight {
+      background: var(--dark);
+      border-color: var(--dark);
+    }
+
+    .summary-card-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+
+    .summary-card.highlight .summary-card-label {
+      color: rgba(255,255,255,0.45);
+    }
+
+    .summary-card-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .summary-card.highlight .summary-card-value {
+      color: #6ee7a0;
+    }
+
+    .summary-card-sub {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .summary-card.highlight .summary-card-sub {
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Materials breakdown */
+    .materials-section {
+      margin-bottom: 40px;
+    }
+
+    .materials-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+
+    .material-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 100px 100px 120px;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      transition: box-shadow 0.15s;
+    }
+
+    .material-row:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    }
+
+    .material-row-header {
+      display: grid;
+      grid-template-columns: 1fr 80px 100px 100px 120px;
+      gap: 16px;
+      padding: 8px 20px;
+      margin-bottom: 4px;
+    }
+
+    .col-head {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+
+    .mat-name {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--dark);
+    }
+
+    .mat-notes {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .mat-weight, .mat-price, .mat-value {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mat-value {
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .mat-confidence {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .conf-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .conf-bar {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--green);
+    }
+
+    .conf-pct {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 34px;
+      text-align: right;
+    }
+
+    /* CO2 section */
+    .co2-section {
+      background: var(--dark);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .co2-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(110, 231, 160, 0.15);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .co2-content { flex: 1; }
+
+    .co2-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 8px;
+    }
+
+    .co2-headline {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #6ee7a0;
+      margin-bottom: 8px;
+    }
+
+    .co2-body {
+      font-size: 15px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+    }
+
+    .co2-stat-group {
+      display: flex;
+      gap: 32px;
+      flex-shrink: 0;
+    }
+
+    .co2-stat { text-align: center; }
+
+    .co2-stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      display: block;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .co2-stat-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+    }
+
+    /* === LEAD GATE OVERLAY === */
+    .lead-gate-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 14, 11, 0.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .lead-gate-backdrop.visible { display: flex; }
+    .lead-gate-card {
+      background: #0d1810;
+      border: 1px solid rgba(184,240,74,0.25);
+      border-radius: 20px;
+      padding: 48px 44px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    }
+    .lead-gate-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #b8f04a; margin-bottom: 12px;
+    }
+    .lead-gate-title {
+      font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+      color: #fff; line-height: 1.15; margin-bottom: 10px;
+    }
+    .lead-gate-body {
+      font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 28px;
+    }
+    .lead-gate-body strong { color: rgba(255,255,255,0.75); font-weight: 600; }
+    .lead-form { display: flex; flex-direction: column; gap: 14px; }
+    .lead-field { display: flex; flex-direction: column; gap: 6px; }
+    .lead-field label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; }
+    .lead-field input {
+      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 12px 14px; color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      transition: border-color 0.15s; outline: none;
+    }
+    .lead-field input::placeholder { color: rgba(255,255,255,0.25); }
+    .lead-field input:focus { border-color: #b8f04a; background: rgba(184,240,74,0.04); }
+    .lead-submit-btn {
+      margin-top: 6px; background: #b8f04a; color: #080e0b;
+      font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+      padding: 14px 24px; border-radius: 10px; border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .lead-submit-btn:hover:not(:disabled) { background: #caf56b; transform: translateY(-1px); }
+    .lead-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .lead-gate-error { display: none; font-size: 13px; color: #f87171; margin-top: -4px; }
+    .lead-gate-error.visible { display: block; }
+    .lead-disclaimer { font-size: 11px; color: rgba(255,255,255,0.28); text-align: center; margin-top: 12px; line-height: 1.5; }
+
+    /* CTA */
+    .results-cta {
+      margin-top: 48px;
+      padding: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .results-cta-text h3 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+
+    .results-cta-text p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .results-cta-actions {
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .cta-btn-primary {
+      background: var(--green);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .cta-btn-primary:hover { background: var(--green-light); }
+
+    .cta-btn-secondary {
+      background: transparent;
+      color: var(--green);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 1.5px solid var(--green);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .cta-btn-secondary:hover { background: rgba(45,90,61,0.06); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .summary-cards { grid-template-columns: 1fr 1fr; }
+      .material-row,
+      .material-row-header { grid-template-columns: 1fr 70px 90px 90px; }
+      .col-head:last-child,
+      .mat-confidence { display: none; }
+      .co2-section { flex-direction: column; gap: 24px; }
+      .co2-stat-group { gap: 24px; }
+      .results-cta { flex-direction: column; }
+      .results-cta-actions { width: 100%; }
+    }
+
+    @media (max-width: 600px) {
+      .scan-main { padding: 32px 24px 56px; }
+      .scan-nav { padding: 14px 24px; }
+      .summary-cards { grid-template-columns: 1fr; }
+      .material-row,
+      .material-row-header { grid-template-columns: 1fr 80px 100px; }
+      .col-head:nth-child(3),
+      .mat-weight { display: none; }
+      .analyze-wrap { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="scan-page">
+
+  <!-- Nav -->
+  <nav class="scan-nav">
+    <a href="/" class="scan-nav-logo">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#2d5a3d"/>
+        <path d="M16 6 L26 22 H6 Z" fill="#f4f0e8"/>
+      </svg>
+      <span class="scan-nav-name">WastetideOS</span>
+    </a>
+    <span class="scan-nav-badge">AI Demo</span>
+  </nav>
+
+  <main class="scan-main">
+
+    <!-- Header -->
+    <div class="scan-page-header">
+      <div class="scan-page-label">Waste Scanner</div>
+      <h1 class="scan-page-title">Drop a photo.<br>See the value.</h1>
+      <p class="scan-page-sub">Upload any industrial waste photo — scrap metal, circuit boards, mixed materials — and get instant material ID, resale value, and CO₂ impact in seconds.</p>
+    </div>
+
+    <!-- Upload zone -->
+    <div class="upload-area" id="upload-area">
+      <div class="upload-placeholder" id="upload-placeholder">
+        <div class="upload-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+        </div>
+        <div class="upload-title">Drop your waste photo here</div>
+        <div class="upload-sub">PNG, JPG, WEBP up to 20MB · Or click to browse</div>
+        <button class="upload-btn" onclick="document.getElementById('photo-input').click()">Choose Photo</button>
+        <input type="file" id="photo-input" accept="image/*">
+      </div>
+      <div class="preview-wrap" id="preview-wrap">
+        <img id="preview-img" class="preview-img" src="" alt="Waste photo preview">
+        <div class="preview-overlay">
+          <button class="preview-change-btn" onclick="document.getElementById('photo-input').click()">Change Photo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyze button -->
+    <div class="analyze-wrap">
+      <button class="analyze-btn" id="analyze-btn" disabled>
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        Analyze Waste
+      </button>
+      <span class="analyze-hint" id="analyze-hint">Upload a photo to begin</span>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" id="loading-state">
+      <div class="spinner"></div>
+      <div>
+        <div class="loading-text" id="loading-text">Uploading photo...</div>
+        <div class="loading-step" id="loading-step">Connecting to AI vision model</div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" id="error-state">
+      <div class="error-title">Analysis failed</div>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section" id="results-section">
+
+      <div class="results-header">
+        <div>
+          <div class="results-title">Analysis Complete</div>
+          <div class="results-description" id="scene-description"></div>
+        </div>
+        <span class="confidence-badge" id="confidence-badge"></span>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="summary-cards">
+        <div class="summary-card highlight">
+          <div class="summary-card-label">Estimated Resale Value</div>
+          <div class="summary-card-value" id="total-value">—</div>
+          <div class="summary-card-sub" id="total-weight-sub">for estimated weight</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-label">Total Weight Identified</div>
+          <div class="summary-card-value" id="total-weight">—</div>
+          <div class="summary-card-sub">kilograms of material</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-label">CO₂ Avoided</div>
+          <div class="summary-card-value" id="total-co2">—</div>
+          <div class="summary-card-sub">kg vs landfilling</div>
+        </div>
+      </div>
+
+      <!-- Materials breakdown -->
+      <div class="materials-section">
+        <div class="materials-label">Material Breakdown</div>
+        <div class="material-row-header">
+          <span class="col-head">Material</span>
+          <span class="col-head">Weight</span>
+          <span class="col-head">Price/kg</span>
+          <span class="col-head">Value</span>
+          <span class="col-head">Confidence</span>
+        </div>
+        <div id="materials-list"></div>
+      </div>
+
+      <!-- CO2 panel -->
+      <div class="co2-section">
+        <div class="co2-icon">
+          <svg width="28" height="28" fill="none" stroke="#6ee7a0" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+        </div>
+        <div class="co2-content">
+          <div class="co2-label">Environmental Impact</div>
+          <div class="co2-headline" id="co2-headline">Saving the planet, one shipment.</div>
+          <div class="co2-body" id="co2-body">By recycling instead of landfilling this material, you avoid significant CO₂ emissions.</div>
+        </div>
+        <div class="co2-stat-group">
+          <div class="co2-stat">
+            <span class="co2-stat-value" id="co2-kg">—</span>
+            <div class="co2-stat-label">kg CO₂ avoided</div>
+          </div>
+          <div class="co2-stat">
+            <span class="co2-stat-value" id="co2-car-days">—</span>
+            <div class="co2-stat-label">car days off road</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="results-cta">
+        <div class="results-cta-text">
+          <h3>Want this on every shipment?</h3>
+          <p>WastetideOS integrates directly with your floor ops to scan, sort, and sell automatically. No manual work.</p>
+        </div>
+        <div class="results-cta-actions">
+          <button class="cta-btn-secondary" onclick="resetScanner()">Scan Another</button>
+          <a href="mailto:nicolas@wastetide.ai?subject=WastetideOS Demo Interest" class="cta-btn-primary">Get Early Access</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+<!-- Lead capture gate overlay -->
+<div class="lead-gate-backdrop" id="lead-gate-backdrop">
+  <div class="lead-gate-card">
+    <div class="lead-gate-eyebrow">Your results are ready</div>
+    <div class="lead-gate-title">Unlock the full valuation</div>
+    <div class="lead-gate-body" id="lead-gate-body">
+      <strong>Materials detected.</strong> Enter your details to see resale values, CO&#8322; impact, and the complete material breakdown.
+    </div>
+    <form class="lead-form" id="lead-form" onsubmit="submitLead(event)">
+      <div class="lead-field">
+        <label for="lead-name">YOUR NAME *</label>
+        <input type="text" id="lead-name" name="name" placeholder="Jane Smith" required autocomplete="name">
+      </div>
+      <div class="lead-field">
+        <label for="lead-email">WORK EMAIL *</label>
+        <input type="email" id="lead-email" name="email" placeholder="jane@company.com" required autocomplete="email">
+      </div>
+      <div class="lead-field">
+        <label for="lead-company">COMPANY</label>
+        <input type="text" id="lead-company" name="company" placeholder="Acme Manufacturing" autocomplete="organization">
+      </div>
+      <div class="lead-gate-error" id="lead-gate-error"></div>
+      <button type="submit" class="lead-submit-btn" id="lead-submit-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Show My Results
+      </button>
+    </form>
+    <div class="lead-disclaimer">No spam. We'll follow up about WastetideOS — opt out any time.</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  const uploadArea = document.getElementById('upload-area');
+  const uploadPlaceholder = document.getElementById('upload-placeholder');
+  const previewWrap = document.getElementById('preview-wrap');
+  const previewImg = document.getElementById('preview-img');
+  const photoInput = document.getElementById('photo-input');
+  const analyzeBtn = document.getElementById('analyze-btn');
+  const analyzeHint = document.getElementById('analyze-hint');
+  const loadingState = document.getElementById('loading-state');
+  const loadingText = document.getElementById('loading-text');
+  const loadingStep = document.getElementById('loading-step');
+  const errorState = document.getElementById('error-state');
+  const errorMsg = document.getElementById('error-msg');
+  const resultsSection = document.getElementById('results-section');
+
+  let selectedFile = null;
+  let pendingScanData = null;
+
+  // Fire-and-forget event tracker
+  async function trackEvent(eventType, metadata) {
+    try {
+      await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: eventType,
+          metadata: {
+            ...metadata,
+            user_agent: navigator.userAgent,
+            referrer: document.referrer || null,
+          },
+        }),
+      });
+    } catch (_) {}
+  }
+
+  // Fire page_view on load
+  trackEvent('page_view', { path: '/scan' });
+
+  function closeLeadGate() {
+    const backdrop = document.getElementById('lead-gate-backdrop');
+    if (backdrop.classList.contains('visible')) {
+      backdrop.classList.remove('visible');
+      trackEvent('form_abandoned', { source: 'scan_page' });
+    }
+  }
+
+  // Close gate on backdrop click-outside or Escape key
+  document.getElementById('lead-gate-backdrop').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeLeadGate();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLeadGate();
+  });
+
+  function showLeadGate(data) {
+    const count = (data.materials || []).length;
+    document.getElementById('lead-gate-body').innerHTML =
+      '<strong>' + count + ' material' + (count !== 1 ? 's' : '') + ' detected.</strong> Enter your details to unlock resale values, CO&#8322; impact, and the full breakdown.';
+    document.getElementById('lead-gate-backdrop').classList.add('visible');
+    setTimeout(() => { const el = document.getElementById('lead-name'); if (el) el.focus(); }, 120);
+    trackEvent('gate_shown', { material_count: count, source: 'scan_page' });
+  }
+
+  async function submitLead(e) {
+    e.preventDefault();
+    const btn = document.getElementById('lead-submit-btn');
+    const errEl = document.getElementById('lead-gate-error');
+    errEl.classList.remove('visible');
+    errEl.textContent = '';
+
+    const name = document.getElementById('lead-name').value.trim();
+    const email = document.getElementById('lead-email').value.trim();
+    const company = document.getElementById('lead-company').value.trim();
+
+    if (!name) { errEl.textContent = 'Name is required.'; errEl.classList.add('visible'); return; }
+    if (!email || !email.includes('@')) { errEl.textContent = 'Valid email is required.'; errEl.classList.add('visible'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, company, scan_data: pendingScanData, source: 'scan_page' }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error || 'Failed to save');
+      trackEvent('form_submitted', { has_company: !!company, source: 'scan_page' });
+      document.getElementById('lead-gate-backdrop').classList.remove('visible');
+      renderResults(pendingScanData);
+    } catch (err) {
+      trackEvent('form_abandoned', { source: 'scan_page', reason: 'submit_error' });
+      errEl.textContent = err.message || 'Something went wrong. Please try again.';
+      errEl.classList.add('visible');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Show My Results';
+    }
+  }
+
+
+  // Drag & drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) setFile(file);
+  });
+
+  uploadArea.addEventListener('click', (e) => {
+    // Don't trigger if clicking the analyze button area or within preview overlay
+    if (e.target.closest('.preview-overlay')) return;
+    if (!uploadArea.classList.contains('has-preview')) {
+      photoInput.click();
+    }
+  });
+
+  photoInput.addEventListener('change', () => {
+    if (photoInput.files[0]) setFile(photoInput.files[0]);
+  });
+
+  function setFile(file) {
+    selectedFile = file;
+    const url = URL.createObjectURL(file);
+    previewImg.src = url;
+    uploadPlaceholder.classList.add('hidden');
+    previewWrap.classList.add('visible');
+    uploadArea.classList.add('has-preview');
+    analyzeBtn.disabled = false;
+    analyzeHint.textContent = file.name + ' · Click Analyze to continue';
+    hideResults();
+    hideError();
+  }
+
+  function hideResults() {
+    resultsSection.classList.remove('visible');
+  }
+
+  function hideError() {
+    errorState.classList.remove('visible');
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorState.classList.add('visible');
+    loadingState.classList.remove('visible');
+  }
+
+  function setLoading(step) {
+    loadingState.classList.add('visible');
+    const steps = {
+      upload: { text: 'Uploading photo...', sub: 'Sending to secure storage' },
+      analyze: { text: 'Analyzing materials...', sub: 'GPT-4o vision identifying waste composition' },
+      pricing: { text: 'Calculating values...', sub: 'Fetching live commodity prices' },
+    };
+    const s = steps[step] || steps.upload;
+    loadingText.textContent = s.text;
+    loadingStep.textContent = s.sub;
+  }
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    analyzeBtn.disabled = true;
+    hideError();
+    hideResults();
+
+    setLoading('upload');
+
+    trackEvent('scan_started', { file_name: selectedFile.name, file_size_bytes: selectedFile.size });
+
+    // Create a browser task record before analysis — frontend will poll for completion
+    let scanTaskId = null;
+    try {
+      const taskRes = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task_type: 'lead_research',
+          input_data: { file_name: selectedFile.name, file_size_bytes: selectedFile.size },
+        }),
+      });
+      const taskResult = await taskRes.json();
+      if (taskResult.success && taskResult.task) {
+        scanTaskId = taskResult.task.id;
+        window._scanTaskId = scanTaskId;
+      }
+    } catch (_) {
+      // Non-fatal: proceed without task tracking
+    }
+
+    // Fake step progression for UX
+    const stepTimer1 = setTimeout(() => setLoading('analyze'), 1200);
+    const stepTimer2 = setTimeout(() => setLoading('pricing'), 5000);
+
+    try {
+      const formData = new FormData();
+      formData.append('photo', selectedFile);
+
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Analysis failed');
+      }
+
+      pendingScanData = data;
+      trackEvent('scan_completed', { material_count: (data.materials || []).length, total_value_usd: data.summary?.total_value_usd });
+
+      // Poll task completion every 2s, then route to the appropriate follow-up screen
+      if (scanTaskId) {
+        pollForTaskCompletion(scanTaskId);
+      } else {
+        trackEvent('lead_gate_shown', { material_count: (data.materials || []).length });
+        showLeadGate(data);
+      }
+    } catch (err) {
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      showError(err.message);
+    } finally {
+      loadingState.classList.remove('visible');
+      analyzeBtn.disabled = false;
+    }
+  });
+
+  // Poll GET /api/tasks/:taskId every 2 seconds until status is 'completed' or 'failed'
+  function pollForTaskCompletion(taskId) {
+    const POLL_INTERVAL = 2000;
+    let pollCount = 0;
+    const maxPolls = 75; // 2.5 minutes max
+
+    const interval = setInterval(async () => {
+      pollCount++;
+      if (pollCount > maxPolls) {
+        clearInterval(interval);
+        trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
+        showLeadGate(pendingScanData);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/tasks/' + taskId);
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          clearInterval(interval);
+          trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
+          showLeadGate(pendingScanData);
+          return;
+        }
+
+        if (result.status === 'completed') {
+          clearInterval(interval);
+          const action = result.result?.follow_up_action || 'show_lead_gate';
+          if (action === 'review_contact_form') {
+            trackEvent('contact_form_submitted', { source: 'scan_page' });
+            const banner = document.createElement('div');
+            banner.style = 'position:fixed;top:80px;right:24px;z-index:200;background:#0d1810;border:1px solid rgba(184,240,74,0.3);border-radius:12px;padding:20px 28px;color:#fff;font-family:Syne,sans-serif;font-size:15px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+            banner.textContent = 'Form submitted — we’ll be in touch.';
+            document.body.appendChild(banner);
+            setTimeout(() => banner.remove(), 5000);
+          } else {
+            trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
+            showLeadGate(pendingScanData);
+          }
+          return;
+        }
+
+        if (result.status === 'failed') {
+          clearInterval(interval);
+          trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
+          showLeadGate(pendingScanData);
+          return;
+        }
+        // status === 'pending': keep polling
+      } catch (_) {
+        clearInterval(interval);
+        trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
+        showLeadGate(pendingScanData);
+      }
+    }, POLL_INTERVAL);
+  }
+
+  function fmt(n) {
+    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(n);
+  }
+
+  function fmtUSD(n) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function renderResults(data) {
+    const { summary, materials, scene_description, confidence } = data;
+
+    // Header
+    document.getElementById('scene-description').textContent = scene_description || '';
+    const badge = document.getElementById('confidence-badge');
+    const confMap = { high: 'High Confidence', medium: 'Medium Confidence', low: 'Low Confidence' };
+    badge.textContent = confMap[confidence] || confidence;
+    badge.className = 'confidence-badge ' + (confidence || 'medium');
+
+    // Summary cards
+    document.getElementById('total-value').textContent = fmtUSD(summary.total_value_usd);
+    document.getElementById('total-weight').textContent = fmt(summary.total_weight_kg) + ' kg';
+    document.getElementById('total-weight-sub').textContent = 'for ' + fmt(summary.total_weight_kg) + ' kg';
+    document.getElementById('total-co2').textContent = fmt(summary.total_co2_avoided_kg) + ' kg';
+
+    // Materials list
+    const list = document.getElementById('materials-list');
+    list.innerHTML = '';
+    materials.forEach((m) => {
+      const row = document.createElement('div');
+      row.className = 'material-row';
+      row.innerHTML = `
+        <div>
+          <div class="mat-name">${escHtml(m.label)}</div>
+          ${m.notes ? '<div class="mat-notes">' + escHtml(m.notes) + '</div>' : ''}
+        </div>
+        <div class="mat-weight">${fmt(m.weight_kg)} kg</div>
+        <div class="mat-price">$${m.price_per_kg.toFixed(2)}/kg</div>
+        <div class="mat-value">${fmtUSD(m.value_usd)}</div>
+        <div class="mat-confidence">
+          <div class="conf-bar-wrap"><div class="conf-bar" style="width:${m.confidence_pct}%"></div></div>
+          <span class="conf-pct">${m.confidence_pct}%</span>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    // CO2 section
+    const co2kg = summary.total_co2_avoided_kg;
+    const carDays = summary.car_days_avoided;
+    document.getElementById('co2-kg').textContent = fmt(co2kg) + ' kg';
+    document.getElementById('co2-car-days').textContent = fmt(carDays) + 'd';
+    document.getElementById('co2-headline').textContent =
+      co2kg >= 100
+        ? `${fmt(co2kg)} kg of CO₂ — staying out of the atmosphere.`
+        : `Every kg recycled keeps CO₂ out of the atmosphere.`;
+    document.getElementById('co2-body').textContent =
+      `Recycling this shipment instead of landfilling avoids ${fmt(co2kg)} kg of CO₂ — equivalent to keeping a car off the road for ${fmt(carDays)} days.`;
+
+    resultsSection.classList.add('visible');
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetScanner() {
+    selectedFile = null;
+    photoInput.value = '';
+    previewImg.src = '';
+    uploadPlaceholder.classList.remove('hidden');
+    previewWrap.classList.remove('visible');
+    uploadArea.classList.remove('has-preview');
+    analyzeBtn.disabled = true;
+    analyzeHint.textContent = 'Upload a photo to begin';
+    hideResults();
+    hideError();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+
+</body>
+</html>

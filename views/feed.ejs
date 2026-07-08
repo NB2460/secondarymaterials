@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+  <atom:link href="https://secondarymaterials.wastetide.ai/admin/podcast/feed.xml" rel="self" type="application/rss+xml"/>
+  <title>Secondary Materials</title>
+  <link>https://secondarymaterials.wastetide.ai</link>
+  <description>Conversations with the leaders building the circular economy. Hosted by Nicolas Brien, founder of WastetideOS.</description>
+  <language>en-us</language>
+  <itunes:author>Nicolas Brien</itunes:author>
+  <itunes:email>wastetideos@polsia.app</itunes:email>
+  <itunes:image href="<%= podcastCover %>"/>
+  <itunes:category text="Education"/>
+  <itunes:category text="Business"/>
+  <itunes:explicit>false</itunes:explicit>
+  <itunes:owner>
+    <itunes:name>Nicolas Brien</itunes:name>
+    <itunes:email>wastetideos@polsia.app</itunes:email>
+  </itunes:owner>
+  <image>
+    <url><%= podcastCover %></url>
+    <title>Secondary Materials</title>
+    <link>https://secondarymaterials.wastetide.ai</link>
+  </image>
+  <% episodes.forEach(function(ep) { %>
+  <item>
+    <title><%= ep.title %></title>
+    <description><![CDATA[<%= ep.description ? ep.description : '' %>]]></description>
+    <pubDate><%= buildPubDate(ep.published_at) %></pubDate>
+    <guid isPermaLink="false"><%= ep.youtube_url %></guid>
+    <% if (ep.duration_seconds) { %>
+    <itunes:duration><%= formatDuration(ep.duration_seconds) %></itunes:duration>
+    <% } %>
+    <% if (ep.itunes_summary) { %>
+    <itunes:summary><![CDATA[<%= ep.itunes_summary %>]]></itunes:summary>
+    <% } %>
+    <% if (ep.thumbnail_url) { %>
+    <itunes:image href="<%= ep.thumbnail_url %>"/>
+    <% } %>
+    <enclosure url="<%= ep.youtube_url %>" type="video/mp4" length="0"/>
+    <itunes:explicit>false</itunes:explicit>
+  </item>
+  <% }) %>
+</channel>
+</rss>

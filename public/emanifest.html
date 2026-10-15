@@ -651,6 +651,10 @@
     <p>We'll pre-fill your info for future manifests too.</p>
     <div class="lead-form" id="leadForm">
       <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="leadName" placeholder="Jane Doe" autocomplete="name" />
+      </div>
+      <div class="form-group">
         <label>EPA ID Number</label>
         <input type="text" id="leadEpaId" placeholder="CAD123456789" />
       </div>
@@ -950,8 +954,25 @@
     // Save lead data into form fields
     const epaId = document.getElementById('leadEpaId').value;
     const company = document.getElementById('leadCompany').value;
+    const name = document.getElementById('leadName').value.trim();
+    const email = document.getElementById('leadEmail').value.trim();
     if (epaId) document.getElementById('fGeneratorEpaId').value = epaId;
     if (company) document.getElementById('fGeneratorName').value = company;
+
+    // Fields are optional — only record a lead when we have someone to contact
+    if (email.includes('@')) {
+      fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name || company || email,
+          email,
+          company,
+          scan_data: { ...scanResult, epa_id: epaId || null },
+          source: 'emanifest',
+        }),
+      }).catch(() => { /* non-blocking: the manifest still generates */ });
+    }
 
     leadGate.classList.remove('active');
     generateBtn.disabled = false;

@@ -659,6 +659,7 @@
       gap: 12px;
       flex-shrink: 0;
     }
+    .results-cta-actions[hidden] { display: none; }
 
     .cta-btn-primary {
       background: var(--green);
@@ -770,6 +771,12 @@
         Analyze Waste
       </button>
       <span class="analyze-hint" id="analyze-hint">Upload a photo to begin</span>
+    </div>
+
+    <!-- Shown when the lead gate is dismissed, so results stay reachable -->
+    <div class="results-cta-actions" id="gate-reopen" hidden style="margin-top:16px">
+      <button class="cta-btn-primary" onclick="showLeadGate(pendingScanData)">Unlock results</button>
+      <button class="cta-btn-secondary" onclick="resetScanner()">Scan Another</button>
     </div>
 
     <!-- Loading -->
@@ -946,6 +953,7 @@
     const backdrop = document.getElementById('lead-gate-backdrop');
     if (backdrop.classList.contains('visible')) {
       backdrop.classList.remove('visible');
+      document.getElementById('gate-reopen').hidden = false;
       trackEvent('form_abandoned', { source: 'scan_page' });
     }
   }
@@ -958,13 +966,16 @@
     if (e.key === 'Escape') closeLeadGate();
   });
 
+  let gateTrackedFor = null;
   function showLeadGate(data) {
     const count = (data.materials || []).length;
     document.getElementById('lead-gate-body').innerHTML =
       '<strong>' + count + ' material' + (count !== 1 ? 's' : '') + ' detected.</strong> Enter your details to unlock resale values, CO&#8322; impact, and the full breakdown.';
+    document.getElementById('gate-reopen').hidden = true;
     document.getElementById('lead-gate-backdrop').classList.add('visible');
     setTimeout(() => { const el = document.getElementById('lead-name'); if (el) el.focus(); }, 120);
-    trackEvent('gate_shown', { material_count: count, source: 'scan_page' });
+    // Reopening the gate after closing it is not a new impression.
+    if (gateTrackedFor !== data) { gateTrackedFor = data; trackEvent('lead_gate_shown', { material_count: count, source: 'scan_page' }); }
   }
 
   async function submitLead(e) {
@@ -992,7 +1003,7 @@
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || 'Failed to save');
-      trackEvent('form_submitted', { has_company: !!company, source: 'scan_page' });
+      trackEvent('lead_submitted', { has_company: !!company, source: 'scan_page' });
       document.getElementById('lead-gate-backdrop').classList.remove('visible');
       renderResults(pendingScanData);
     } catch (err) {
@@ -1049,6 +1060,7 @@
 
   function hideResults() {
     resultsSection.classList.remove('visible');
+    document.getElementById('gate-reopen').hidden = true;
   }
 
   function hideError() {
@@ -1084,26 +1096,6 @@
 
     trackEvent('scan_started', { file_name: selectedFile.name, file_size_bytes: selectedFile.size });
 
-    // Create a browser task record before analysis — frontend will poll for completion
-    let scanTaskId = null;
-    try {
-      const taskRes = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          task_type: 'lead_research',
-          input_data: { file_name: selectedFile.name, file_size_bytes: selectedFile.size },
-        }),
-      });
-      const taskResult = await taskRes.json();
-      if (taskResult.success && taskResult.task) {
-        scanTaskId = taskResult.task.id;
-        window._scanTaskId = scanTaskId;
-      }
-    } catch (_) {
-      // Non-fatal: proceed without task tracking
-    }
-
     // Fake step progression for UX
     const stepTimer1 = setTimeout(() => setLoading('analyze'), 1200);
     const stepTimer2 = setTimeout(() => setLoading('pricing'), 5000);
@@ -1129,13 +1121,7 @@
       pendingScanData = data;
       trackEvent('scan_completed', { material_count: (data.materials || []).length, total_value_usd: data.summary?.total_value_usd });
 
-      // Poll task completion every 2s, then route to the appropriate follow-up screen
-      if (scanTaskId) {
-        pollForTaskCompletion(scanTaskId);
-      } else {
-        trackEvent('lead_gate_shown', { material_count: (data.materials || []).length });
-        showLeadGate(data);
-      }
+      showLeadGate(data);
     } catch (err) {
       clearTimeout(stepTimer1);
       clearTimeout(stepTimer2);
@@ -1145,64 +1131,6 @@
       analyzeBtn.disabled = false;
     }
   });
-
-  // Poll GET /api/tasks/:taskId every 2 seconds until status is 'completed' or 'failed'
-  function pollForTaskCompletion(taskId) {
-    const POLL_INTERVAL = 2000;
-    let pollCount = 0;
-    const maxPolls = 75; // 2.5 minutes max
-
-    const interval = setInterval(async () => {
-      pollCount++;
-      if (pollCount > maxPolls) {
-        clearInterval(interval);
-        trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
-        showLeadGate(pendingScanData);
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/tasks/' + taskId);
-        const result = await res.json();
-
-        if (!res.ok || !result.success) {
-          clearInterval(interval);
-          trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
-          showLeadGate(pendingScanData);
-          return;
-        }
-
-        if (result.status === 'completed') {
-          clearInterval(interval);
-          const action = result.result?.follow_up_action || 'show_lead_gate';
-          if (action === 'review_contact_form') {
-            trackEvent('contact_form_submitted', { source: 'scan_page' });
-            const banner = document.createElement('div');
-            banner.style = 'position:fixed;top:80px;right:24px;z-index:200;background:#0d1810;border:1px solid rgba(184,240,74,0.3);border-radius:12px;padding:20px 28px;color:#fff;font-family:Syne,sans-serif;font-size:15px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
-            banner.textContent = 'Form submitted — we’ll be in touch.';
-            document.body.appendChild(banner);
-            setTimeout(() => banner.remove(), 5000);
-          } else {
-            trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
-            showLeadGate(pendingScanData);
-          }
-          return;
-        }
-
-        if (result.status === 'failed') {
-          clearInterval(interval);
-          trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
-          showLeadGate(pendingScanData);
-          return;
-        }
-        // status === 'pending': keep polling
-      } catch (_) {
-        clearInterval(interval);
-        trackEvent('lead_gate_shown', { material_count: (pendingScanData?.materials || []).length });
-        showLeadGate(pendingScanData);
-      }
-    }, POLL_INTERVAL);
-  }
 
   function fmt(n) {
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(n);

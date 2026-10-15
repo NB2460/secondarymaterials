@@ -231,6 +231,7 @@
   <div class="nav-links">
     <a href="#scanner" class="nav-link">Scanner</a>
     <a href="#comment-ca-marche" class="nav-link">Comment ca marche</a>
+    <a href="https://wastetide.ai" class="nav-link">Par Wastetide</a>
   </div>
   <span class="nav-badge">Beta</span>
 </nav>
@@ -513,6 +514,28 @@
           </label>
         </div>
 
+        <!-- Lead capture — optional, after the BSD is already usable -->
+        <div style="padding: 24px 36px 0;">
+          <form class="bsd-field-group" id="bsd-lead-form" onsubmit="submitBsdLead(event)">
+            <div class="bsd-group-label">Valoriser ces dechets</div>
+            <p style="font-size: 13px; color: var(--text-dim); line-height: 1.55; margin-bottom: 12px;">Une partie de ces dechets a une valeur de revente. Laissez votre email : l'equipe Wastetide vous recontacte avec une estimation.</p>
+            <div class="bsd-field-row">
+              <div class="bsd-field">
+                <label for="bsd-lead-name">Nom</label>
+                <input type="text" id="bsd-lead-name" placeholder="Marie Dupont" autocomplete="name">
+              </div>
+              <div class="bsd-field">
+                <label for="bsd-lead-email">Email professionnel *</label>
+                <input type="email" id="bsd-lead-email" placeholder="marie@acme.fr" autocomplete="email" required>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+              <button type="submit" class="bsd-btn-primary" id="bsd-lead-btn">Etre recontacte</button>
+              <span class="footer-note" id="bsd-lead-status" aria-live="polite"></span>
+            </div>
+          </form>
+        </div>
+
         <div class="results-footer">
           <span class="footer-note">Document genere automatiquement — a verifier et signer avant depot sur TrackDechets officiel.</span>
           <button class="bsd-btn-secondary" onclick="resetScanner()">
@@ -543,6 +566,7 @@
 
   let selectedFile = null;
   let currentScanId = null;
+  let lastBsdData = null;
 
   // Drag & drop
   uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
@@ -614,6 +638,7 @@
       if (!res.ok || !data.success) throw new Error(data.error || 'Analyse echouee');
 
       currentScanId = data.scan_id;
+      lastBsdData = data;
       renderResults(data);
     } catch (err) {
       clearTimeout(stepTimer1); clearTimeout(stepTimer2);
@@ -703,6 +728,36 @@
     win.onload = () => { setTimeout(() => win.print(), 500); };
   }
 
+  async function submitBsdLead(e) {
+    e.preventDefault();
+    const btn = document.getElementById('bsd-lead-btn');
+    const status = document.getElementById('bsd-lead-status');
+    const email = document.getElementById('bsd-lead-email').value.trim();
+    const company = document.getElementById('bsd-prod-name').value.trim();
+    const name = document.getElementById('bsd-lead-name').value.trim() || company || email;
+    if (!email.includes('@')) { status.textContent = 'Email invalide.'; return; }
+
+    btn.disabled = true;
+    status.textContent = 'Envoi...';
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, email, company,
+          scan_data: { bsd_scan_id: currentScanId, materials: lastBsdData?.materials || [] },
+          source: 'bsd',
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error || 'Echec');
+      status.textContent = 'Merci, on vous recontacte.';
+    } catch (err) {
+      btn.disabled = false;
+      status.textContent = 'Echec de l\'envoi, reessayez.';
+    }
+  }
+
   function resetScanner() {
     selectedFile = null;
     photoInput.value = '';
@@ -714,6 +769,10 @@
     analyzeHint.textContent = 'Uploadez une photo pour commencer';
     hideResults(); hideError();
     currentScanId = null;
+    lastBsdData = null;
+    document.getElementById('bsd-lead-form').reset();
+    document.getElementById('bsd-lead-btn').disabled = false;
+    document.getElementById('bsd-lead-status').textContent = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

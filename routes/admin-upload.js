@@ -16,21 +16,7 @@ const { uploadToR2 } = require('../lib/r2-upload');
 const { transcribeAudio } = require('../lib/gemini-transcribe');
 const { generateShowNotes } = require('../lib/show-notes-gen');
 const { generateEpisodeThumbnail } = require('../lib/thumbnail-gen');
-
-// ─── Auth middleware ──────────────────────────────────────────────────────────
-
-function adminAuth(req, res, next) {
-  const pw = process.env.PODCAST_ADMIN_PASSWORD;
-  if (!pw) {
-    console.error('[admin-upload] PODCAST_ADMIN_PASSWORD not set');
-    return res.status(500).send('Server misconfiguration: admin password not set');
-  }
-  const provided = req.headers['x-admin-password'] || req.query._pw || '';
-  if (provided !== pw) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
-}
+const { adminAuth } = require('../lib/admin-auth');
 
 // Use multer with memory storage (NOT diskStorage — Render fs is ephemeral)
 const upload = multer({

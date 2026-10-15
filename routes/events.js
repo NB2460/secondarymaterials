@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const { insertEvent, getEventCounts } = require('../db/events');
+const { adminAuth } = require('../lib/admin-auth');
 
 const VALID_EVENTS = new Set([
   'page_view',
@@ -42,7 +43,8 @@ router.post('/', async (req, res) => {
 });
 
 // GET /admin/analytics — funnel metrics dashboard
-router.get('/', async (_req, res) => {
+router.get('/', adminAuth, async (req, res) => {
+  const pwQuery = req.query._pw ? '?_pw=' + encodeURIComponent(req.query._pw) : '';
   try {
     const rows = await getEventCounts();
 
@@ -54,7 +56,8 @@ router.get('/', async (_req, res) => {
     const scansStarted = counts.scan_started     || 0;
     const scansDone    = counts.scan_completed   || 0;
     const gatesShown   = counts.lead_gate_shown  || 0;
-    const leadsSub     = counts.lead_submitted   || 0;
+    // /scan sent `form_submitted` before it switched to `lead_submitted` — count both
+    const leadsSub     = (counts.lead_submitted || 0) + (counts.form_submitted || 0);
 
     const scansFromViews   = pageViews > 0 ? ((scansStarted / pageViews) * 100).toFixed(1) : '0.0';
     const completionRate   = scansStarted > 0 ? ((scansDone / scansStarted) * 100).toFixed(1) : '0.0';
@@ -119,7 +122,7 @@ router.get('/', async (_req, res) => {
       <h1>WastetideOS Analytics</h1>
       <div class="header-sub">WasteScope demo funnel — /scan</div>
     </div>
-    <a href="/admin/leads" class="back-link">← Leads</a>
+    <a href="/admin/leads${pwQuery}" class="back-link">← Leads</a>
   </div>
   <div class="container">
 

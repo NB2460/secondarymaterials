@@ -48,7 +48,7 @@ router.get('/', async (_req, res) => {
 
 // ─── Email subscribe ────────────────────────────────────────────────────────
 
-router.post('/api/subscribe', express.urlencoded({ extended: false }), async (req, res) => {
+router.post('/subscribe', express.urlencoded({ extended: false }), async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   if (!email || !/^[^\/\/@]+@[^\/@]+$/.test(email)) {
     return res.status(400).json({ error: 'Valid email required' });
@@ -64,7 +64,7 @@ router.post('/api/subscribe', express.urlencoded({ extended: false }), async (re
 
 // ─── Guest application ───────────────────────────────────────────────────────
 
-router.post('/api/apply', express.urlencoded({ extended: false }), async (req, res) => {
+router.post('/apply', express.urlencoded({ extended: false }), async (req, res) => {
   const { name, title, company, linkedin_url, pitch } = req.body;
   if (!name || !pitch) {
     return res.status(400).json({ error: 'Name and pitch are required' });

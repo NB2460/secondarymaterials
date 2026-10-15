@@ -1,11 +1,38 @@
 /**
- * Owns: /api/leads (POST — capture a demo lead) and /admin/leads (GET — list all leads).
+ * Owns: /api/leads (POST — capture a lead from any free tool, notify the team) and /admin/leads (GET — list all leads).
  * Does NOT own: scan analysis, image uploads, user authentication.
  */
 
 const express = require('express');
 const router = express.Router();
 const { createLead, getAllLeads } = require('../db/leads');
+const { adminAuth } = require('../lib/admin-auth');
+const { sendEmail } = require('../lib/email-notify');
+const { sendInboxMessage } = require('../lib/polsia-notify');
+
+async function notifyNewLead(lead, scanData, source) {
+  const materials = scanData?.materials || [];
+  const totalValue = scanData?.summary?.total_value_usd;
+  const body = [
+    `New lead from ${source || 'unknown source'}`,
+    ``,
+    `Name: ${lead.name}`,
+    `Email: ${lead.email}`,
+    `Company: ${lead.company || '—'}`,
+    `Materials detected: ${materials.length}`,
+    totalValue !== undefined ? `Estimated total value: $${totalValue}` : null,
+    ``,
+    `View all leads at: ${process.env.APP_URL || 'https://wastetide.ai'}/admin/leads`,
+  ].filter(line => line !== null).join('\n');
+
+  const TO_EMAIL = process.env.LEAD_NOTIFY_EMAIL || 'nicolas@wastetide.ai';
+  await sendEmail({ to: TO_EMAIL, subject: `New lead: ${lead.email} (${source || 'unknown'})`, text: body });
+  await sendInboxMessage({
+    subject: `New lead: ${lead.name}`,
+    message: `${lead.name} <${lead.email}> — ${lead.company || 'no company'} — via ${source || 'unknown'}`,
+    kind: 'lead',
+  });
+}
 
 // POST /api/leads — store lead captured after scan
 router.post('/', async (req, res) => {
@@ -26,6 +53,7 @@ router.post('/', async (req, res) => {
       scan_data: scan_data || null,
       source: source || null,
     });
+    notifyNewLead(lead, scan_data, source).catch(err => console.error('[leads] notify error:', err.message));
     res.json({ success: true, lead });
   } catch (err) {
     console.error('[leads] createLead error:', err.message);
@@ -33,8 +61,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /admin/leads — simple lead list, no auth for MVP
-router.get('/', async (_req, res) => {
+// GET /admin/leads — simple lead list (also mounted at /api/leads, hence the auth)
+router.get('/', adminAuth, async (_req, res) => {
   try {
     const leads = await getAllLeads();
     const leadsHtml = leads.map((l) => {

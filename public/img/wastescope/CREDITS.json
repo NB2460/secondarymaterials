@@ -1,0 +1,32 @@
+{
+ "alu": {
+  "title": "DillingenAluminiumSchrott.jpg",
+  "creator": "Lokilech",
+  "license": "CC BY-SA 3.0",
+  "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:DillingenAluminiumSchrott.jpg",
+  "thumb": "https://upload.wikimedia.org/wikipedia/commons/e/e4/DillingenAluminiumSchrott.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+ },
+ "plastic": {
+  "title": "Bales of PET bottles closeup.jpg",
+  "creator": "Grendelkhan",
+  "license": "CC BY-SA 4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Bales_of_PET_bottles_closeup.jpg",
+  "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Bales_of_PET_bottles_closeup.jpg/1920px-Bales_of_PET_bottles_closeup.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+ },
+ "copper": {
+  "title": "copper scraps",
+  "creator": "Inha Leex Hale",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "page": "https://www.flickr.com/photos/46835425@N00/3510927258"
+ },
+ "electronics": {
+  "title": "a pile of RAM",
+  "creator": "blakespot",
+  "license": "CC BY 2.0",
+  "license_url": "https://creativecommons.org/licenses/by/2.0/",
+  "page": "https://www.flickr.com/photos/35448539@N00/6173837649"
+ }
+}

@@ -53,6 +53,7 @@ app.get('/', (_req, res) => {
 });
 app.get('/scan', (_req, res) => { res.render('scan'); });
 app.get('/bsd',  (_req, res) => { res.render('bsd'); });
+app.get('/wastescope', (_req, res) => { res.render('wastescope'); });
 
 // Secondary Materials podcast — serves at /podcast on main domain
 // and at secondarymaterials.wastetide.ai (via subdomain routing via x-original-host).

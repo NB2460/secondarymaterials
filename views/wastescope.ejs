@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WasteScope — See what your waste is worth</title>
+  <meta name="description" content="Point your phone at a pile of industrial waste. WasteScope names the materials, estimates the weight and prints a ticket with its resale value. Free, by Wastetide.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground: #E7E8E4;
+      --screen: #0E1210;
+      --paper: #FFFFFF;
+      --ink: #121613;
+      --ink-2: #3A403B;
+      --muted: #5F665F;
+      --line: rgba(18, 22, 19, 0.12);
+      --lime: #C6F36B;
+      --ok: #2F7D45;
+      --warn: #D98A1E;
+      --bad: #C2412D;
+      --bin-copper: #C46A2B;
+      --bin-brass: #C9A23A;
+      --bin-pcb: #3F8F4A;
+      --bin-alu: #9AA6A8;
+      --bin-plastic: #3D7FB3;
+      --bin-other: #3A403B;
+      --r-sm: 4px;   /* tags, chips, swatches */
+      --r-md: 8px;   /* buttons, inputs, tiles */
+      --r-lg: 12px;  /* panels, cards */
+      --r-xl: 18px;  /* viewfinder */
+      --bad-on-dark: #FF9C88;
+      --font: 'Archivo', system-ui, sans-serif;
+      --mono: 'Space Mono', ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scrollbar-gutter: stable; }
+    body {
+      min-height: 100vh; display: flex; flex-direction: column;
+      font-family: var(--font);
+      background: var(--ground);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; }
+    button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, label:focus-within {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+    .screen button:focus-visible { outline-color: var(--lime); }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ── Nav ─────────────────────────────────────────── */
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 64px; }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 700; font-stretch: 85%; font-size: 1.25rem; letter-spacing: -0.01em; }
+    .nav-links { display: flex; align-items: center; gap: 28px; font-size: 0.9375rem; }
+    .nav-links a { text-decoration: none; }
+    .nav-links .by { color: var(--muted); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px; border-radius: var(--r-md);
+      font-weight: 600; font-size: 0.9375rem; line-height: 1;
+      transition: transform 120ms ease, background-color 160ms ease;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-ink { background: var(--ink); color: #fff; }
+    .btn-lime { background: var(--lime); color: var(--screen); }
+    .btn-ghost-dark { border: 1px solid rgba(18,22,19,0.2); color: var(--ink); background: rgba(255,255,255,0.6); }
+    .btn[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Hero ────────────────────────────────────────── */
+    .hero { flex: 1; display: grid; grid-template-columns: 400px 1fr; column-gap: 96px; row-gap: 48px; align-items: center; align-content: center; padding: 0 64px 16px; width: 100%; max-width: 1440px; margin: 0 auto; }
+    .eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+    h1 { font-size: 4rem; line-height: 1; font-weight: 600; font-stretch: 85%; letter-spacing: -0.025em; margin: 20px 0 24px; text-wrap: balance; }
+    .lede { font-size: 1.125rem; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
+    .side-block { margin-top: 28px; }
+    .samples { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .sample { display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 8px; background: var(--paper); border-radius: var(--r-md); text-align: left;
+      box-shadow: 0 0 0 1px rgba(18,22,19,0.08);
+      transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .sample:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px rgba(18,22,19,0.18), 0 8px 18px -10px rgba(18,22,19,0.35); }
+    .sample:active { transform: scale(0.97); }
+    .sample[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
+    .sample .thumb { position: relative; height: 58px; border-radius: var(--r-sm); background-image: var(--art); background-size: cover; background-position: center; overflow: hidden; }
+    .sample .thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.12)); }
+    .sample .name { display: block; font-size: 0.8125rem; font-weight: 600; line-height: 1.2; padding: 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sample .val { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); padding: 0 2px; font-variant-numeric: tabular-nums; }
+    .swatch { width: 10px; height: 10px; flex-shrink: 0; }
+
+    .wt-strip { margin-top: 24px; width: min(560px, calc(100% - 290px)); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 16px 20px; background: var(--paper); border-radius: var(--r-lg); box-shadow: 0 0 0 1px rgba(18,22,19,0.08);
+      animation: chip-in 260ms cubic-bezier(0, 0, 0.2, 1) both; animation-delay: 600ms; }
+    .wt-strip-text { flex: 1 1 200px; min-width: 0; }
+    .wt-strip p { font-size: 1rem; line-height: 1.35; font-weight: 600; font-stretch: 90%; margin-top: 2px; }
+    .freq { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; font-size: 0.8125rem; }
+    .freq button { min-height: 40px; padding: 8px 12px; color: var(--muted); }
+    .freq button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+    /* ── Stage: viewfinder + ticket ──────────────────── */
+    .stage { position: relative; min-height: 736px; padding-top: 40px; }
+    .screen {
+      position: relative; width: min(640px, calc(100% - 200px)); aspect-ratio: 4 / 3;
+      background: var(--screen); border-radius: var(--r-xl); overflow: hidden;
+      box-shadow: 0 30px 60px -20px rgba(14,18,16,0.45);
+      color: #fff;
+    }
+    .photo { position: absolute; inset: 0; background-size: cover; background-position: center; }
+    .photo.placeholder {
+      background-color: #6B6458;
+      background-image:
+        radial-gradient(ellipse 38% 30% at 34% 62%, #D08A4A 0%, rgba(208,138,74,0) 100%),
+        radial-gradient(ellipse 30% 26% at 68% 58%, #A7B2B3 0%, rgba(167,178,179,0) 100%),
+        radial-gradient(ellipse 60% 30% at 50% 88%, #4A3220 0%, rgba(74,50,32,0) 100%),
+        linear-gradient(180deg, #B9BCB4 0%, #8B8579 50%, #3B332A 100%);
+      filter: blur(2px);
+    }
+    /* Scanning: a lime beam sweeps the frame, brackets tighten, detection blips appear. */
+    .beam { position: absolute; inset: 0; pointer-events: none; opacity: 0; transform: translateY(-100%);
+      background: linear-gradient(180deg, rgba(198,243,107,0) 0%, rgba(198,243,107,0) 70%, rgba(198,243,107,0.22) calc(100% - 2px), var(--lime) calc(100% - 2px)); }
+    .screen[data-state="scanning"] .beam { opacity: 1; animation: sweep 1500ms cubic-bezier(0.45, 0, 0.55, 1) infinite alternate; }
+    @keyframes sweep { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    .corners { transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .screen[data-state="scanning"] .corners { transform: scale(0.94); }
+    .blips { position: absolute; inset: 0; pointer-events: none; }
+    .blip { position: absolute; width: 14px; height: 14px; border: 1.5px solid var(--lime); border-radius: var(--r-sm); opacity: 0;
+      animation: blip 900ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d); }
+    @keyframes blip { 0% { opacity: 0; transform: scale(0.85); } 25% { opacity: 1; transform: scale(1); } 100% { opacity: 0.55; transform: scale(1); } }
+    .screen:not([data-state="scanning"]) .blips { display: none; }
+    .chip { animation: chip-in 260ms cubic-bezier(0, 0, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 80ms); }
+    @keyframes chip-in { from { opacity: 0; transform: translateY(8px); } }
+    .scrim { position: absolute; inset: 0; background-color: rgba(10,12,10,0.30); background-image: linear-gradient(180deg, rgba(10,12,10,0.55) 0%, rgba(10,12,10,0) 18%); transition: background-color 240ms ease; }
+    .hud { text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+    .screen[data-state="check"] .scrim,
+    .screen[data-state="result"] .scrim { background-color: rgba(10,12,10,0.10); }
+    .screen[data-state="scanning"] .scrim { background-color: rgba(10,12,10,0.45); }
+    .grid-lines { position: absolute; inset: 0; pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent calc(33.33% - 0.5px), rgba(255,255,255,0.08) calc(33.33% - 0.5px), rgba(255,255,255,0.08) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px), transparent calc(66.66% - 0.5px), rgba(255,255,255,0.08) calc(66.66% - 0.5px), rgba(255,255,255,0.08) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px)),
+        linear-gradient(180deg, transparent calc(33.33% - 0.5px), rgba(255,255,255,0.08) calc(33.33% - 0.5px), rgba(255,255,255,0.08) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px), transparent calc(66.66% - 0.5px), rgba(255,255,255,0.08) calc(66.66% - 0.5px), rgba(255,255,255,0.08) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px));
+    }
+    .corners { position: absolute; left: 6.25%; right: 6.25%; top: 11.7%; bottom: 22%; pointer-events: none; }
+    .corners i { position: absolute; width: 40px; height: 40px; border-color: #fff; border-style: solid; border-width: 0; transition: border-color 240ms ease; }
+    .corners i:nth-child(1) { left: 0; top: 0; border-left-width: 3px; border-top-width: 3px; }
+    .corners i:nth-child(2) { right: 0; top: 0; border-right-width: 3px; border-top-width: 3px; }
+    .corners i:nth-child(3) { left: 0; bottom: 0; border-left-width: 3px; border-bottom-width: 3px; }
+    .corners i:nth-child(4) { right: 0; bottom: 0; border-right-width: 3px; border-bottom-width: 3px; }
+    .screen[data-state="check"] .corners i,
+    .screen[data-state="scanning"] .corners i,
+    .screen[data-state="result"] .corners i { border-color: var(--lime); }
+
+    .hud { position: absolute; left: 24px; right: 24px; display: flex; justify-content: space-between; gap: 12px; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .hud-top { top: 18px; }
+    .hud-top .status { color: var(--lime); display: flex; align-items: center; gap: 8px; }
+    .hud-top .status::before { content: ''; width: 8px; height: 8px; border-radius: var(--r-sm); background: currentColor; }
+    .hud-top .meta { color: rgba(255,255,255,0.75); }
+    .hud-top .status { white-space: nowrap; }
+    .screen[data-state="error"] .hud-top .status { color: var(--bad-on-dark); }
+    .hud-bottom { bottom: 18px; justify-content: flex-start; gap: 16px; flex-wrap: wrap; }
+    .hud-bottom .ok { color: var(--lime); }
+    .hud-bottom .no { color: rgba(255,255,255,0.55); }
+
+    .panel {
+      position: absolute; background: rgba(255,255,255,0.92); color: var(--ink);
+      border-radius: var(--r-lg); box-shadow: 0 12px 32px -8px rgba(10,12,10,0.35);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    }
+    .drop-panel { left: 50%; top: 50%; transform: translate(-50%, -58%); width: min(380px, 86%); padding: 26px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+    .drop-panel h2 { font-size: 1.75rem; line-height: 1.1; font-weight: 600; font-stretch: 85%; letter-spacing: -0.01em; }
+    .drop-panel .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .drop-panel .hint { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; }
+    .screen.dragover .drop-panel { box-shadow: 0 0 0 3px var(--lime), 0 12px 32px -8px rgba(10,12,10,0.35); }
+
+    .check-panel { left: 20px; right: 20px; bottom: 20px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+    .checks { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; }
+    .checks li { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 8px; }
+    .checks .dot { align-self: center; }
+    .checks .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; }
+    .checks .ok .dot { background: var(--ok); }
+    .checks .warn .dot { background: var(--warn); }
+    .checks .bad .dot { background: var(--bad); }
+    .checks .tip .dot { background: #A9ADA8; }
+    .checks small { color: var(--muted); font-size: 0.875rem; }
+    .check-actions { display: flex; gap: 8px; }
+
+    .tag { position: absolute; left: 92px; padding: 3px 8px; background: var(--lime); color: var(--screen); border-radius: var(--r-sm); font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .scan-panel { left: 20px; right: 20px; bottom: 20px; padding: 16px 18px; }
+    .steps { list-style: none; display: flex; gap: 16px; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .steps li[data-done="true"] { color: var(--ok); }
+    .steps li[data-active="true"] { color: var(--ink); }
+    .scan-notes { font-size: 0.8125rem; color: var(--ink-2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .scan-notes .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--warn); color: #fff; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+    .bar { margin-top: 12px; height: 3px; background: rgba(18,22,19,0.1); border-radius: var(--r-sm); overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width 600ms ease; }
+
+    .chips-overlay { position: absolute; left: 20px; bottom: 20px; right: 96px; /* keep clear of the ticket overlap */ display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 9px; background: rgba(255,255,255,0.92); color: var(--ink); border-radius: var(--r-sm); font-size: 0.8125rem; font-weight: 600; }
+    .chip span { font-weight: 400; color: var(--muted); }
+
+    .error-panel { left: 20px; right: 20px; bottom: 20px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .error-panel p { font-size: 0.9375rem; }
+    .error-panel strong { color: var(--bad); }
+
+    .wall-panel { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(400px, 90%); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .wall-panel h2 { font-size: 1.375rem; line-height: 1.15; font-weight: 600; font-stretch: 85%; }
+    .wall-panel p { font-size: 0.9375rem; color: var(--ink-2); }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 0.8125rem; font-weight: 600; }
+    .field input { font: inherit; font-size: 1rem; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid rgba(18,22,19,0.2); background: #fff; color: var(--ink); }
+    .field input[aria-invalid="true"] { border-color: var(--bad); }
+    .field .err { font-size: 0.8125rem; color: var(--bad); }
+    .wall-panel .alt { font-size: 0.8125rem; color: var(--muted); }
+
+    /* ── Ticket ───────────────────────────────────────── */
+    .ticket, .ticket-slot { position: absolute; right: 0; top: 290px; width: 262px; transform: rotate(4deg); }
+    .ticket-slot { height: 330px; border: 1.5px dashed rgba(18,22,19,0.25); border-radius: var(--r-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em; color: var(--muted); z-index: 0; }
+    .ticket {
+      background: var(--paper); color: var(--ink); font-family: var(--mono); font-size: 0.6875rem; line-height: 1.4;
+      box-shadow: 0 1px 2px rgba(18,22,19,0.08), 0 18px 36px -12px rgba(18,22,19,0.35);
+      z-index: 2;
+      background-image: radial-gradient(circle at 4px -1px, var(--ground) 4px, transparent 4.5px);
+      background-size: 22px 8px; background-repeat: repeat-x; background-position: 4px 0;
+      padding-top: 8px;
+    }
+    /* Printing: the ticket feeds out, then each line, total and stamp land in order. */
+    .ticket { --rot: 4deg; }
+    .ticket.printing { animation: feed 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+    @keyframes feed { from { opacity: 0; transform: rotate(var(--rot)) translateY(-18px); } }
+    .ticket.printing [data-line] { animation: line-in 240ms cubic-bezier(0, 0, 0.2, 1) both; animation-delay: calc(320ms + var(--i) * 110ms); }
+    @keyframes line-in { from { opacity: 0; transform: translateY(4px); } }
+    .ticket.printing .stamp { animation: stamp 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: var(--stamp-delay, 900ms); }
+    @keyframes stamp { from { opacity: 0; transform: rotate(-8deg) scale(1.35); } }
+    .ticket-body { padding: 10px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .t-head { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 8px; border-bottom: 1px dashed var(--ink); text-align: center; }
+    .t-head strong { font-size: 0.8125rem; letter-spacing: 0.08em; }
+    .t-head span { color: var(--muted); }
+    .t-lines { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .t-lines li { display: flex; justify-content: space-between; gap: 8px; }
+    .t-lines li > span:first-child { display: flex; align-items: center; gap: 8px; text-transform: uppercase; min-width: 0; }
+    .t-lines .swatch { width: 7px; height: 7px; }
+    .t-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; border-top: 1px dashed var(--ink); }
+    .t-total b { font-size: 1.375rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .t-co2 { display: flex; justify-content: space-between; color: var(--muted); }
+    .stamp { align-self: flex-end; padding: 3px 9px; border: 2px solid var(--ok); border-radius: var(--r-sm); transform: rotate(-8deg); font-weight: 700; letter-spacing: 0.14em; color: var(--ok); }
+    .t-foot { display: block; text-align: center; padding: 10px 18px 14px; border-top: 1px dashed var(--ink); text-decoration: none; text-transform: uppercase; }
+    .t-foot:hover { background: var(--lime); }
+    .ticket-actions { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Materials & FAQ ──────────────────────────── */
+    .section { border-top: 1px solid var(--line); padding: 96px 64px; max-width: 1440px; margin: 0 auto; width: 100%; }
+    .split { display: grid; grid-template-columns: 420px 1fr; gap: 48px; align-items: start; }
+    .split h2 { font-size: 3rem; line-height: 1; font-weight: 600; font-stretch: 85%; letter-spacing: -0.02em; margin: 12px 0 16px; text-wrap: balance; }
+    .split .intro p { color: var(--ink-2); text-wrap: pretty; }
+    .faq { list-style: none; border-top: 1px solid rgba(18,22,19,0.2); }
+    .faq details { border-bottom: 1px solid var(--line); }
+    .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; font-size: 1.125rem; font-weight: 600; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: '+'; flex-shrink: 0; width: 24px; text-align: center; font-family: var(--mono); font-size: 1.25rem; font-weight: 400; color: var(--muted); }
+    .faq details[open] summary::after { content: '−'; color: var(--ink); }
+    .faq summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+    .faq details p { padding: 0 40px 20px 0; color: var(--ink-2); max-width: 680px; text-wrap: pretty; }
+    /* ── How it works ─────────────────────────────── */
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    .how { border-top: 1px solid var(--line); padding: 96px 64px; max-width: 1440px; margin: 0 auto; width: 100%; scroll-margin-top: 0; }
+    .how-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; margin-bottom: 48px; }
+    .how-head h2 { font-size: 3rem; line-height: 1; font-weight: 600; font-stretch: 85%; letter-spacing: -0.02em; margin-top: 12px; text-wrap: balance; }
+    .how-head p { max-width: 420px; color: var(--ink-2); text-wrap: pretty; }
+    .steps-3 { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .step { background: var(--paper); border-radius: var(--r-lg); box-shadow: 0 0 0 1px rgba(18,22,19,0.08); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .step-visual { position: relative; height: 168px; border-radius: var(--r-md); overflow: hidden; background: var(--screen); }
+    .step-num { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; color: var(--muted); }
+    .step h3 { font-size: 1.5rem; line-height: 1.1; font-weight: 600; font-stretch: 85%; letter-spacing: -0.01em; }
+    .step p { color: var(--ink-2); font-size: 0.9375rem; text-wrap: pretty; }
+    .sv-photo { position: absolute; inset: 0; background-size: cover; background-position: center; }
+    .sv-scrim { position: absolute; inset: 0; background: rgba(10,12,10,0.25); }
+    .sv-corners { position: absolute; inset: 16px 24px 40px; }
+    .sv-corners i { position: absolute; width: 22px; height: 22px; border: 0 solid var(--lime); }
+    .sv-corners i:nth-child(1) { left: 0; top: 0; border-left-width: 2px; border-top-width: 2px; }
+    .sv-corners i:nth-child(2) { right: 0; top: 0; border-right-width: 2px; border-top-width: 2px; }
+    .sv-corners i:nth-child(3) { left: 0; bottom: 0; border-left-width: 2px; border-bottom-width: 2px; }
+    .sv-corners i:nth-child(4) { right: 0; bottom: 0; border-right-width: 2px; border-bottom-width: 2px; }
+    .sv-rules { position: absolute; left: 12px; bottom: 10px; display: flex; gap: 8px; padding: 3px 8px; border-radius: var(--r-sm); background: rgba(10,12,10,0.6); font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--lime); text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+    .sv-chips { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .sv-chips .chip { animation: none; font-size: 0.75rem; padding: 4px 8px; }
+    .sv-ticket { position: absolute; left: 50%; top: 18px; width: 200px; transform: translateX(-50%) rotate(3deg); background: var(--paper); padding: 12px 14px; font-family: var(--mono); font-size: 0.6875rem; line-height: 1.5; color: var(--ink); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.6); }
+    .sv-ticket .row { display: flex; justify-content: space-between; }
+    .sv-ticket .tot { border-top: 1px dashed var(--ink); margin-top: 6px; padding-top: 6px; font-weight: 700; font-size: 0.9375rem; }
+    .how-note { margin-top: 24px; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; padding: 16px 20px; border-radius: var(--r-lg); border: 1px dashed rgba(18,22,19,0.2); font-size: 0.875rem; color: var(--ink-2); }
+    .how-note strong { color: var(--ink); }
+    .footer { display: flex; align-items: baseline; gap: 16px; padding: 12px 64px; border-top: 1px solid var(--line); font-size: 0.75rem; line-height: 1.4; color: var(--muted); }
+    .footer > span { flex: 1; min-width: 0; }
+    .footer a { color: inherit; }
+
+    @media (max-width: 1200px) {
+      .how, .section { padding: 64px 24px; }
+      .split { grid-template-columns: 1fr; gap: 24px; }
+      .split h2 { font-size: 2.25rem; }
+      .how-head { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .how-head h2 { font-size: 2.25rem; }
+      .steps-3 { grid-template-columns: 1fr; }
+      .hero { grid-template-columns: 1fr; gap: 20px; padding: 16px 24px 64px; }
+      .hero > section:first-of-type { display: contents; }
+      h1 { margin: 0; }
+      .stage { order: 2; }
+      #samples-block, #wt-block { order: 3; margin-top: 0; }
+      .nav-links .by { display: none; }
+      .btn { white-space: nowrap; }
+      .nav { padding: 18px 24px; }
+      .nav-links a:not(.btn):not(.by) { display: none; }
+      h1 { font-size: 3rem; }
+      .stage { min-height: 0; padding-top: 0; display: flex; flex-direction: column; gap: 16px; }
+      .wt-strip { width: 100%; margin-top: 0; }
+      .screen { width: 100%; }
+      .ticket, .ticket-slot, .ticket-actions { position: relative; right: auto; top: auto; transform: none; margin-top: 0; }
+      .ticket-slot { display: none; }
+      .ticket { width: 100%; max-width: 340px; margin: 0 auto; --rot: 0deg; }
+      .ticket-actions { width: 100%; }
+      .ticket-actions .btn { flex: 1; justify-content: center; }
+      .wt-strip { flex-direction: column; align-items: stretch; gap: 12px; }
+      .wt-strip-text { flex: none; }
+      .chips-overlay { right: 20px; }
+      .wt-strip .freq { display: flex; }
+      .wt-strip .freq button { flex: 1; }
+      .wt-strip .btn { justify-content: center; }
+      .footer { padding: 14px 24px; flex-direction: column; gap: 8px; }
+    }
+    @media (max-width: 560px) {
+      .samples { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .screen { aspect-ratio: 3 / 4; }
+      .corners { top: 9%; bottom: 26%; }
+      .hud-bottom, .hud-top .meta, .checks small { display: none; }
+      .drop-panel { transform: translate(-50%, -50%); }
+      .check-panel, .scan-panel, .error-panel { left: 10px; right: 10px; bottom: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticket.printing, .ticket.printing [data-line], .ticket.printing .stamp, .chip, .blip { animation: none; opacity: 1; }
+      .screen[data-state="scanning"] .beam { animation: none; transform: translateY(-50%); }
+      .corners { transition: none; }
+      .bar i, .scrim, .corners i, .btn { transition: none; }
+    }
+    @media print {
+      body { background: #fff; }
+      body > *:not(.hero), .hero > *:not(.stage), .stage > *:not(.ticket) { display: none !important; }
+      .hero { display: block; padding: 0; }
+      .ticket { position: static; transform: none; box-shadow: none; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="logo" href="/wastescope" aria-label="WasteScope home">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M2 8V2h6M18 2h6v6M24 18v6h-6M8 24H2v-6" stroke="#121613" stroke-width="2.2"/><circle cx="13" cy="13" r="3.5" fill="#121613"/></svg>
+    WasteScope
+  </a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="#how">How it works</a>
+    <a href="#faq">FAQ</a>
+    <a href="https://www.wastetide.ai" class="by" target="_blank" rel="noopener">by Wastetide ↗</a>
+    <button class="btn btn-ink" type="button" data-action="choose">Upload a photo</button>
+  </nav>
+</header>
+
+<main class="hero">
+  <p class="sr-only" id="sr-status" role="status" aria-live="polite"></p>
+  <section aria-labelledby="title">
+    <div class="eyebrow" id="quota-label">Free · 3 scans · no sign-up</div>
+    <h1 id="title">Frame it.<br>Weigh it.<br>Price it.</h1>
+    <p class="lede">Point your phone at a pile of industrial waste. WasteScope names the materials, estimates the weight and prints you a ticket with its resale value.</p>
+
+    <div class="side-block" id="samples-block">
+      <div class="eyebrow">No photo? Try a sample · free</div>
+      <div class="samples" id="samples"></div>
+    </div>
+
+  </section>
+
+  <section class="stage" aria-label="Scanner">
+
+    <div class="screen" id="screen" data-state="idle">
+      <div class="photo placeholder" id="photo"></div>
+      <div class="scrim"></div>
+      <div class="grid-lines" aria-hidden="true"></div>
+      <div class="beam" aria-hidden="true"></div>
+      <div class="blips" id="blips" aria-hidden="true"></div>
+      <div class="corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+      <div class="hud hud-top"><span class="status" id="hud-status">Frame the whole pile</span><span class="meta" id="hud-meta">3 free scans</span></div>
+      <div class="hud hud-bottom" id="hud-rules"><span class="ok">✓ Whole pile</span><span class="ok">✓ Daylight</span><span class="ok">✓ Scale object</span><span class="no">✕ No close-up</span></div>
+
+      <!-- idle -->
+      <div class="panel drop-panel" data-for="idle">
+        <h2>Drop a photo of the pile</h2>
+        <div class="actions">
+          <button class="btn btn-lime" type="button" data-action="choose">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+            Choose photo
+          </button>
+          <button class="btn btn-ghost-dark" type="button" data-action="camera">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+            Take a photo
+          </button>
+        </div>
+        <div class="hint">JPG · PNG · HEIC — up to 20 MB</div>
+      </div>
+
+      <!-- check -->
+      <span class="tag" data-for="check" style="top:66%">Photo loaded · ready to weigh</span>
+      <div class="panel check-panel" data-for="check">
+        <ul class="checks" id="checks"></ul>
+        <div class="check-actions">
+          <button class="btn btn-ghost-dark" type="button" data-action="choose">Retake</button>
+          <button class="btn btn-lime" type="button" id="scan-btn">Scan this photo →</button>
+        </div>
+      </div>
+
+      <!-- scanning -->
+      <div class="panel scan-panel" data-for="scanning" role="status" aria-live="polite">
+        <p class="scan-notes" id="scan-notes" hidden></p>
+        <ol class="steps" id="steps">
+          <li data-step="upload">Uploading</li>
+          <li data-step="identify">Identifying materials</li>
+          <li data-step="price">Pricing</li>
+        </ol>
+        <div class="bar"><i id="bar"></i></div>
+      </div>
+
+      <!-- result -->
+      <div class="chips-overlay" data-for="result" id="chips"></div>
+
+      <!-- error -->
+      <div class="panel error-panel" data-for="error" role="alert">
+        <p><strong>Couldn't read this photo.</strong> <span id="error-msg"></span> It didn't use a free scan.</p>
+        <div class="check-actions">
+          <button class="btn btn-ghost-dark" type="button" data-action="choose">Retake</button>
+          <button class="btn btn-lime" type="button" data-action="retry">Try again</button>
+        </div>
+      </div>
+
+      <!-- wall -->
+      <form class="panel wall-panel" data-for="wall" id="wall-form" novalidate>
+        <h2>You've used your 3 free scans</h2>
+        <p>Leave your work email to unlock 10 more scans.</p>
+        <div class="field">
+          <label for="lead-name">Name</label>
+          <input id="lead-name" name="name" autocomplete="name" required>
+          <span class="err" id="err-name" hidden></span>
+        </div>
+        <div class="field">
+          <label for="lead-email">Work email</label>
+          <input id="lead-email" name="email" type="email" autocomplete="email" inputmode="email" required>
+          <span class="err" id="err-email" hidden></span>
+        </div>
+        <span class="err" id="err-form" hidden></span>
+        <button class="btn btn-ink" type="submit" id="wall-submit">Unlock 10 scans</button>
+        <div class="alt">Need unlimited scans on every shipment? <a href="https://www.wastetide.ai" target="_blank" rel="noopener">Talk to Wastetide</a></div>
+      </form>
+    </div>
+
+    <article class="ticket" id="ticket" aria-label="Scan ticket"></article>
+
+    <div class="ticket-actions" id="ticket-actions" hidden>
+      <button class="btn btn-ghost-dark" type="button" data-action="download">Download ticket</button>
+      <button class="btn btn-ghost-dark" type="button" data-action="choose">Scan another</button>
+    </div>
+
+    <div class="wt-strip" id="wt-block" hidden>
+      <div class="wt-strip-text">
+        <div class="eyebrow">If this pile comes back</div>
+        <p id="wt-yearly">That's ≈ $0 a year you could recover.</p>
+      </div>
+      <div class="freq" role="group" aria-label="How often">
+        <button type="button" data-freq="52" aria-pressed="false">Weekly</button>
+        <button type="button" data-freq="12" aria-pressed="true">Monthly</button>
+        <button type="button" data-freq="4" aria-pressed="false">Quarterly</button>
+      </div>
+      <a class="btn btn-ink" href="https://www.wastetide.ai" target="_blank" rel="noopener" data-track="wastetide_cta">Get real offers →</a>
+    </div>
+
+    <input type="file" id="file-input" accept="image/*,.heic,.heif" class="sr-only" tabindex="-1" aria-hidden="true">
+    <input type="file" id="camera-input" accept="image/*,.heic,.heif" capture="environment" class="sr-only" tabindex="-1" aria-hidden="true">
+  </section>
+</main>
+
+<section class="how" id="how" aria-labelledby="how-title">
+  <div class="how-head">
+    <div>
+      <div class="eyebrow">How it works</div>
+      <h2 id="how-title">One photo in, a priced ticket out.</h2>
+    </div>
+    <p>WasteScope reads the pile the way a scrap buyer would at first glance: what's in it, roughly how much, and what that's worth today.</p>
+  </div>
+  <ol class="steps-3">
+    <li class="step">
+      <div class="step-visual" aria-hidden="true">
+        <div class="sv-photo" style="background-image:url('/img/wastescope/aluminium.jpg')"></div>
+        <div class="sv-scrim"></div>
+        <div class="sv-corners"><i></i><i></i><i></i><i></i></div>
+        <div class="sv-rules"><span>✓ WHOLE PILE</span><span>✓ DAYLIGHT</span></div>
+      </div>
+      <div class="step-num">01 · FRAME</div>
+      <h3>Shoot the whole pile</h3>
+      <p>One pile per photo, in daylight, with something for scale. iPhone photos work as-is. We check the shot before scanning.</p>
+    </li>
+    <li class="step">
+      <div class="step-visual" aria-hidden="true">
+        <div class="sv-photo" style="background-image:url('/img/wastescope/copper.jpg')"></div>
+        <div class="sv-scrim"></div>
+        <div class="sv-chips">
+          <span class="chip"><i class="swatch" style="background:var(--bin-copper)"></i>Copper <span>120 kg · 92%</span></span>
+          <span class="chip"><i class="swatch" style="background:var(--bin-brass)"></i>Brass <span>9 kg</span></span>
+        </div>
+      </div>
+      <div class="step-num">02 · WEIGH</div>
+      <h3>We name what's in it</h3>
+      <p>A vision model identifies up to six materials, estimates each weight and tells you how sure it is.</p>
+    </li>
+    <li class="step">
+      <div class="step-visual" aria-hidden="true">
+        <div class="sv-photo" style="background-image:url('/img/wastescope/copper.jpg');filter:blur(3px)"></div>
+        <div class="sv-scrim"></div>
+        <div class="sv-ticket">
+          <div class="row"><span>COPPER 120KG</span><span>1,020</span></div>
+          <div class="row"><span>BRASS 9KG</span><span>47</span></div>
+          <div class="row tot"><span>TOTAL</span><span>$1,080</span></div>
+        </div>
+      </div>
+      <div class="step-num">03 · PRICE</div>
+      <h3>You get a priced ticket</h3>
+      <p>Reference scrap prices per kilo and the CO₂ you'd avoid by recycling, on a ticket you can download and share.</p>
+    </li>
+  </ol>
+  <div class="how-note">
+    <span><strong>An estimate, not an offer.</strong> Prices are reference values per kilo; weights are visual estimates. Real offers depend on purity and volume.</span>
+    <a class="btn btn-ink" href="https://www.wastetide.ai" target="_blank" rel="noopener">Get real offers from Wastetide →</a>
+  </div>
+</section>
+
+<section class="section" id="faq" aria-labelledby="faq-title">
+  <div class="split">
+    <div class="intro">
+      <div class="eyebrow">FAQ</div>
+      <h2 id="faq-title">Fair questions.</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>Is the value a real offer?</summary>
+        <p>No. It's an estimate built from reference scrap prices per kilo and a visual weight estimate. Actual offers depend on purity, volume and your region — Wastetide can get you those.</p>
+      </details>
+      <details>
+        <summary>How accurate is the weight?</summary>
+        <p>It's read from the photo, so it's approximate. Shoot the whole pile in daylight and include something of known size (a pallet, a door, a person) to tighten the estimate. Each material shows how confident the model is.</p>
+      </details>
+      <details>
+        <summary>What happens to my photo?</summary>
+        <p>It's uploaded to run the analysis and attached to your result. Don't include people's faces or documents you wouldn't want stored.</p>
+      </details>
+      <details>
+        <summary>What happens after 3 free scans?</summary>
+        <p>Leave your work email to unlock 10 more. If you need to scan every shipment, Wastetide does it continuously and finds buyers for you.</p>
+      </details>
+      <details>
+        <summary>Can I scan hazardous waste?</summary>
+        <p>WasteScope recognises batteries and circuit boards, but it doesn't classify hazardous waste or fill regulatory forms. For that, use Wastetide's BSD (France) and e-Manifest (US) tools.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>WasteScope by Wastetide · estimates from reference prices, not buyer offers.
+  <span class="credits">Sample photos:
+    <a href="https://www.flickr.com/photos/46835425@N00/3510927258" target="_blank" rel="noopener">Inha Leex Hale</a> (CC BY 2.0),
+    <a href="https://www.flickr.com/photos/35448539@N00/6173837649" target="_blank" rel="noopener">blakespot</a> (CC BY 2.0),
+    <a href="https://commons.wikimedia.org/wiki/File:DillingenAluminiumSchrott.jpg" target="_blank" rel="noopener">Lokilech</a> (CC BY-SA 3.0),
+    <a href="https://commons.wikimedia.org/wiki/File:Bales_of_PET_bottles_closeup.jpg" target="_blank" rel="noopener">Grendelkhan</a> (CC BY-SA 4.0)</span></span>
+  <a href="https://www.wastetide.ai" target="_blank" rel="noopener">wastetide.ai ↗</a>
+</footer>
+
+<script>
+(() => {
+  // ── Config ───────────────────────────────────────────────────────────
+  const FREE_SCANS = 3;
+  const UNLOCK_SCANS = 10;
+  const MAX_BYTES = 20 * 1024 * 1024;
+  const SOURCE = 'wastescope';
+  // Prototype quota lives in localStorage; the real limit must be enforced server-side.
+  const store = {
+    get used() { return Number(localStorage.getItem('ws_used') || 0); },
+    set used(v) { localStorage.setItem('ws_used', String(v)); },
+    get unlocked() { return localStorage.getItem('ws_unlocked') === '1'; },
+    set unlocked(v) { localStorage.setItem('ws_unlocked', v ? '1' : '0'); },
+  };
+  // Prototype helper: /wastescope?reset clears the local quota.
+  if (new URLSearchParams(location.search).has('reset')) {
+    localStorage.removeItem('ws_used'); localStorage.removeItem('ws_unlocked');
+    history.replaceState(null, '', location.pathname);
+  }
+  const limit = () => FREE_SCANS + (store.unlocked ? UNLOCK_SCANS : 0);
+  const left = () => Math.max(0, limit() - store.used);
+
+  const BIN = {
+    copper: 'var(--bin-copper)', brass: 'var(--bin-brass)', circuit_boards: 'var(--bin-pcb)',
+    aluminum: 'var(--bin-alu)', stainless_steel: 'var(--bin-alu)', steel: 'var(--bin-alu)', zinc: 'var(--bin-alu)', lead: 'var(--bin-alu)',
+    plastic_hdpe: 'var(--bin-plastic)', plastic_abs: 'var(--bin-plastic)', plastic_pp: 'var(--bin-plastic)',
+  };
+  const binColor = (key) => BIN[key] || 'var(--bin-other)';
+
+  // Samples use the same price / CO₂ tables as /api/analyze, precomputed.
+  const m = (key, label, kg, price, co2) => ({ material_key: key, label, weight_kg: kg, price_per_kg: price, value_usd: +(kg * price).toFixed(2), co2_avoided_kg: +(kg * co2).toFixed(1) });
+  const sample = (name, materials) => {
+    const total = materials.reduce((s, x) => s + x.value_usd, 0);
+    const kg = materials.reduce((s, x) => s + x.weight_kg, 0);
+    const co2 = materials.reduce((s, x) => s + x.co2_avoided_kg, 0);
+    return { sample: true, scene_description: name, confidence: 'high', materials,
+      summary: { total_value_usd: +total.toFixed(2), total_weight_kg: kg, total_co2_avoided_kg: +co2.toFixed(1), car_days_avoided: +(co2 / (4600 / 365)).toFixed(1) } };
+  };
+  // Real sample photos (credits in the footer), over an abstract pile in the
+  // material's bin colours that shows while the photo loads.
+  const PHOTO = { copper: 'copper', pcb: 'electronics', alu: 'aluminium', plastic: 'plastics' };
+  const FALLBACK = {
+    copper: 'repeating-linear-gradient(118deg, rgba(255,255,255,0.07) 0 2px, transparent 2px 9px), radial-gradient(ellipse 30% 24% at 30% 60%, #EBA567 0%, rgba(235,165,103,0) 100%), radial-gradient(ellipse 28% 22% at 62% 50%, #C46A2B 0%, rgba(196,106,43,0) 100%), radial-gradient(ellipse 18% 14% at 78% 70%, #D9B44A 0%, rgba(217,180,74,0) 100%), radial-gradient(ellipse 55% 30% at 50% 92%, #24150C 0%, rgba(36,21,12,0) 100%), linear-gradient(180deg, #A08A76 0%, #7A5235 55%, #3A2416 100%)',
+    pcb: 'repeating-linear-gradient(90deg, rgba(201,162,58,0.35) 0 1px, transparent 1px 14px), repeating-linear-gradient(0deg, rgba(201,162,58,0.25) 0 1px, transparent 1px 18px), radial-gradient(ellipse 30% 26% at 34% 46%, #6FBF73 0%, rgba(111,191,115,0) 100%), radial-gradient(ellipse 28% 24% at 70% 62%, #2F7D45 0%, rgba(47,125,69,0) 100%), linear-gradient(180deg, #355E3F 0%, #1E3B26 55%, #0F2316 100%)',
+    alu: 'repeating-linear-gradient(100deg, rgba(255,255,255,0.18) 0 3px, transparent 3px 16px), radial-gradient(ellipse 34% 26% at 36% 56%, #F1F4F5 0%, rgba(241,244,245,0) 100%), radial-gradient(ellipse 30% 24% at 68% 46%, #B9C4C6 0%, rgba(185,196,198,0) 100%), linear-gradient(180deg, #A9B2B4 0%, #7C8689 55%, #4C5557 100%)',
+    plastic: 'radial-gradient(circle at 22% 40%, #E0533F 0 7%, rgba(224,83,63,0) 8%), radial-gradient(circle at 48% 66%, #F2C14E 0 6%, rgba(242,193,78,0) 7%), radial-gradient(circle at 70% 34%, #5FBF3F 0 6%, rgba(95,191,63,0) 7%), radial-gradient(circle at 82% 70%, #E0533F 0 5%, rgba(224,83,63,0) 6%), radial-gradient(ellipse 34% 28% at 38% 52%, #CFE3F2 0%, rgba(207,227,242,0) 100%), radial-gradient(ellipse 30% 26% at 66% 58%, #3D7FB3 0%, rgba(61,127,179,0) 100%), linear-gradient(180deg, #9FB4C6 0%, #6F879C 55%, #3F5466 100%)',
+  };
+  const ART = Object.fromEntries(Object.entries(FALLBACK).map(([k, g]) => [k, 'url("/img/wastescope/' + PHOTO[k] + '.jpg"), ' + g]));
+  Object.values(PHOTO).forEach(n => { const i = new Image(); i.src = '/img/wastescope/' + n + '.jpg'; }); // preload
+  const SAMPLES = [
+    { id: 'copper', label: 'Copper', color: 'var(--bin-copper)', data: sample('Copper cable offcuts', [m('copper', 'Copper', 120, 8.5, 3.5), m('brass', 'Brass', 9, 5.2, 4.0), m('rubber', 'Rubber', 11, 1.2, 2.5)]) },
+    { id: 'pcb', label: 'Electronics', color: 'var(--bin-pcb)', data: sample('Circuit boards in crates', [m('circuit_boards', 'Circuit boards', 38, 12, 5.0), m('steel', 'Steel', 7, 0.55, 1.8)]) },
+    { id: 'alu', label: 'Aluminum', color: 'var(--bin-alu)', data: sample('Aluminium profiles in a skip', [m('aluminum', 'Aluminum', 260, 2.4, 9.2)]) },
+    { id: 'plastic', label: 'Plastics', color: 'var(--bin-plastic)', data: sample('Baled plastic bottles', [m('plastic_hdpe', 'HDPE plastic', 300, 0.4, 1.5), m('plastic_pp', 'PP plastic', 200, 0.35, 1.4)]) },
+  ];
+
+  // ── Elements ─────────────────────────────────────────────────────────
+  const $ = (s) => document.querySelector(s);
+  const screen = $('#screen'), photo = $('#photo'), ticket = $('#ticket');
+  const fileInput = $('#file-input'), cameraInput = $('#camera-input');
+  let currentFile = null, currentUrl = null, lastResult = null, ticketNo = 41, currentHint = '', lastSample = false;
+
+  const fmtUSD = (n) => '$' + Math.round(n).toLocaleString('en-US');
+  const fmt2 = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const el = (tag, { dataset, ...props } = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); if (dataset) Object.assign(n.dataset, dataset); kids.forEach(k => n.append(k)); return n; };
+
+  function track(event_type, metadata = {}) {
+    fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type, source: SOURCE, metadata }) }).catch(() => {});
+  }
+
+  // ── State machine ────────────────────────────────────────────────────
+  function setState(state) {
+    screen.dataset.state = state;
+    document.querySelectorAll('[data-for]').forEach(n => { n.hidden = n.dataset.for !== state; });
+    const status = { idle: 'Frame the whole pile', check: 'Checking your photo', scanning: 'Weighing…', result: 'Scan complete', error: 'Scan failed', wall: 'Free scans used' }[state];
+    $('#hud-status').textContent = status;
+    $('#hud-rules').hidden = state !== 'idle';
+    document.querySelector('.hud-top').hidden = state === 'wall';
+    if (state === 'check' || state === 'scanning') { ticket.hidden = true; $('#ticket-actions').hidden = true; }
+    $('#wt-block').hidden = state !== 'result';
+    updateQuota();
+  }
+  function updateQuota() {
+    const n = left();
+    $('#hud-meta').textContent = currentFile && screen.dataset.state !== 'idle' ? currentFile.name.slice(0, 24) + ' · ' + n + ' left' : n + ' free scan' + (n === 1 ? '' : 's');
+    $('#quota-label').textContent = store.unlocked ? 'Unlocked · ' + n + ' scans left' : 'Free · ' + n + ' scan' + (n === 1 ? '' : 's') + ' left · no sign-up';
+  }
+
+  // ── Ticket ───────────────────────────────────────────────────────────
+  function renderTicket(data, { sampleTicket, animate = true }) {
+    ticket.replaceChildren();
+    const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    const body = el('div', { className: 'ticket-body' });
+    body.append(el('div', { className: 't-head' },
+      el('strong', { textContent: 'WASTESCOPE' }),
+      el('span', { textContent: (sampleTicket ? 'SAMPLE TICKET' : 'YOUR TICKET') + ' · No ' + String(ticketNo).padStart(4, '0') }),
+      el('span', { textContent: date + ' · US MARKET' })));
+    const lines = el('ul', { className: 't-lines' });
+    (data.materials || []).forEach(mat => {
+      const sw = el('i', { className: 'swatch' }); sw.style.background = binColor(mat.material_key);
+      lines.append(el('li', { dataset: { line: '' } },
+        el('span', {}, sw, el('span', { textContent: (mat.label || mat.material_key) + ' ' + Math.round(mat.weight_kg) + 'kg' })),
+        el('span', { textContent: fmt2(mat.value_usd) })));
+    });
+    body.append(lines);
+    const totalEl = el('b', { textContent: fmtUSD(data.summary.total_value_usd) });
+    body.append(el('div', { className: 't-total', dataset: { line: '' } }, el('span', { textContent: 'TOTAL' }), totalEl));
+    body.append(el('div', { className: 't-co2', dataset: { line: '' } }, el('span', { textContent: 'CO2 AVOIDED' }), el('span', { textContent: Math.round(data.summary.total_co2_avoided_kg) + ' kg' })));
+    body.append(el('div', { className: 'stamp', textContent: 'ESTIMATE' }));
+    const lineEls = body.querySelectorAll('[data-line]');
+    lineEls.forEach((n, i) => n.style.setProperty('--i', i));
+    const totalDelay = 320 + (lineEls.length - 2) * 110;
+    body.querySelector('.stamp').style.setProperty('--stamp-delay', (totalDelay + 700) + 'ms');
+    ticket.append(body);
+    ticket.append(el('a', { className: 't-foot', href: 'https://www.wastetide.ai', target: '_blank', rel: 'noopener', textContent: 'Get real offers → Wastetide' }));
+    ticket.hidden = false;
+    ticket.classList.remove('printing');
+    if (!animate) return; // initial sample ticket: shown as-is
+    void ticket.offsetWidth; ticket.classList.add('printing');
+    countUp(totalEl, data.summary.total_value_usd, totalDelay);
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let countRaf = null;
+  function countUp(node, target, delay) {
+    cancelAnimationFrame(countRaf);
+    if (reduceMotion.matches) { node.textContent = fmtUSD(target); return; }
+    node.textContent = fmtUSD(0);
+    const start = performance.now() + delay, dur = 650;
+    const tick = (now) => {
+      const t = Math.min(1, Math.max(0, (now - start) / dur));
+      node.textContent = fmtUSD(target * (1 - Math.pow(1 - t, 3)));
+      if (t < 1) countRaf = requestAnimationFrame(tick);
+    };
+    countRaf = requestAnimationFrame(tick);
+  }
+
+  function showResult(data, { sampleTicket }) {
+    lastResult = data; lastSample = !!sampleTicket;
+    ticketNo += 1;
+    renderTicket(data, { sampleTicket });
+    const chips = $('#chips'); chips.replaceChildren();
+    const mats = data.materials || [];
+    const maxChips = window.matchMedia('(max-width: 560px)').matches ? 2 : 3; // keep the photo visible
+    mats.slice(0, maxChips).forEach(mat => {
+      const sw = el('i', { className: 'swatch' }); sw.style.background = binColor(mat.material_key);
+      const chip = el('span', { className: 'chip' }); chip.style.setProperty('--i', chips.children.length);
+      chips.append(chip); chip.append(sw, mat.label || mat.material_key, el('span', { textContent: Math.round(mat.weight_kg) + ' kg' + (mat.confidence_pct ? ' · ' + mat.confidence_pct + '%' : '') }));
+    });
+    if (mats.length > maxChips) { const more = el('span', { className: 'chip', textContent: '+' + (mats.length - maxChips) + ' more on the ticket' }); more.style.setProperty('--i', maxChips); chips.append(more); }
+    $('#sr-status').textContent = 'Scan complete. Estimated resale value ' + fmtUSD(data.summary.total_value_usd) + '.';
+    setState('result');
+    $('#ticket-actions').hidden = false;
+    updateYearly();
+  }
+
+  let freq = 12;
+  function updateYearly() {
+    if (!lastResult) return;
+    $('#wt-yearly').textContent = "That's ≈ " + fmtUSD(lastResult.summary.total_value_usd * freq) + ' a year you could recover.';
+  }
+  document.querySelectorAll('[data-freq]').forEach(b => b.addEventListener('click', () => {
+    freq = Number(b.dataset.freq);
+    document.querySelectorAll('[data-freq]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    updateYearly();
+  }));
+
+  // ── Photo check (client-side, before any API call) ───────────────────
+  function checkPhoto(file) {
+    return new Promise((resolve) => {
+      const results = [];
+      const img = new Image();
+      img.onload = () => {
+        const short = Math.min(img.naturalWidth, img.naturalHeight);
+        // The vision model reads 512px images fine; only block thumbnails it can't use.
+        results.push(short >= 600 ? { level: 'ok', text: 'Sharp enough' } : short >= 200 ? { level: 'warn', text: 'Small photo', note: '— small materials may be missed' } : { level: 'bad', text: 'Photo too small to read', note: '— use the original photo' });
+        const c = document.createElement('canvas'); c.width = 48; c.height = 48;
+        const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, 48, 48);
+        const px = ctx.getImageData(0, 0, 48, 48).data; let sum = 0;
+        for (let i = 0; i < px.length; i += 4) sum += 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+        const lum = sum / (px.length / 4);
+        currentHint = colourHint(px);
+        results.push(lum < 55 ? { level: 'warn', text: 'Photo is dark', note: '— daylight works best' } : lum > 225 ? { level: 'warn', text: 'Photo is overexposed', note: '— avoid flash' } : { level: 'ok', text: 'Good light' });
+        results.push({ level: 'tip', text: 'Whole pile and an object for scale?', note: '— improves the weight estimate' });
+        resolve(results);
+      };
+      img.onerror = () => resolve([{ level: 'warn', text: "Can't preview this format", note: '— we can still try to scan it' }, { level: 'tip', text: 'Whole pile and an object for scale?', note: '' }]);
+      img.src = currentUrl;
+    });
+  }
+
+  // Coarse material family from colour, sent along with the photo. The server only
+  // uses it when no vision model is configured (local dev); the real model ignores it.
+  function colourHint(px) {
+    const bins = { orange: 0, green: 0, colourful: 0, grey: 0 }; const hues = new Set();
+    for (let i = 0; i < px.length; i += 4) {
+      const r = px[i] / 255, g = px[i + 1] / 255, b = px[i + 2] / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      const sat = max ? d / max : 0;
+      if (sat < 0.22 || max < 0.18) { bins.grey++; continue; }
+      let h = 0;
+      if (d) h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h = (h * 60 + 360) % 360;
+      hues.add(Math.floor(h / 30));
+      if (h >= 12 && h < 45) bins.orange++; else if (h >= 80 && h < 165) bins.green++; else bins.colourful++;
+    }
+    const n = px.length / 4;
+    if (hues.size >= 7 && bins.grey < n * 0.6) return 'plastics';
+    if (bins.orange > n * 0.25) return 'copper';
+    if (bins.green > n * 0.25) return 'pcb';
+    return bins.colourful > n * 0.3 ? 'plastics' : 'metal';
+  }
+
+  // iPhones save HEIC by default: browsers can't display it and the vision model
+  // can't read it, so convert to JPEG before anything else.
+  const isHeic = (f) => /image\/hei[cf]/i.test(f.type) || /\.hei[cf]$/i.test(f.name);
+  let heicLib = null;
+  function loadHeicLib() {
+    if (heicLib) return heicLib;
+    heicLib = new Promise((resolve, reject) => {
+      const sc = document.createElement('script');
+      sc.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      sc.onload = () => resolve(window.heic2any); sc.onerror = () => { heicLib = null; reject(new Error('converter unavailable')); };
+      document.head.append(sc);
+    });
+    return heicLib;
+  }
+  async function toJpeg(file) {
+    const heic2any = await loadHeicLib();
+    const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+    const blob = Array.isArray(out) ? out[0] : out;
+    return new File([blob], file.name.replace(/\.hei[cf]$/i, '') + '.jpg', { type: 'image/jpeg' });
+  }
+
+  let autoScanTimer = null;
+  async function onFile(file) {
+    if (!file) return;
+    clearTimeout(autoScanTimer);
+    if (!file.type.startsWith('image/') && !isHeic(file)) { showError('That file is not an image.'); return; }
+    if (file.size > MAX_BYTES) { showError('That photo is over 20 MB.'); return; }
+    if (isHeic(file)) {
+      setState('check');
+      $('#hud-status').textContent = 'Converting iPhone photo…';
+      $('#checks').replaceChildren(el('li', { className: 'tip' }, el('span', { className: 'dot', textContent: '…' }), 'Converting your iPhone photo'));
+      $('#scan-btn').disabled = true;
+      try { file = await toJpeg(file); }
+      catch (_) { showError("We couldn't open this iPhone photo. Try again, or share it as JPG."); return; }
+      $('#hud-status').textContent = 'Checking your photo';
+    }
+    if (left() <= 0) { currentFile = file; setPhoto(file); setState('wall'); track('lead_gate_shown', { reason: 'quota' }); return; }
+    currentFile = file; setPhoto(file);
+    const checks = await checkPhoto(file);
+    if (currentFile !== file) return; // a newer photo replaced this one
+    const blocked = checks.some(ch => ch.level === 'bad');
+    if (!blocked) {
+      // No pause: scan right away, carry any warning into the scan panel.
+      const warn = checks.find(ch => ch.level === 'warn');
+      const notes = $('#scan-notes');
+      notes.replaceChildren(...(warn ? [el('span', { className: 'dot', textContent: '!' }), warn.text + ' ' + (warn.note || '')] : []));
+      notes.hidden = !warn;
+      scan();
+      return;
+    }
+    // Unusable photo: stop and explain.
+    setState('check');
+    const list = $('#checks'); list.replaceChildren();
+    const icon = { ok: '✓', warn: '!', bad: '✕', tip: '?' };
+    checks.forEach(ch => list.append(el('li', { className: ch.level }, el('span', { className: 'dot', textContent: icon[ch.level], ariaHidden: 'true' }), ch.text, ch.note ? el('small', { textContent: ' ' + ch.note }) : '')));
+    $('#scan-btn').disabled = true;
+  }
+  function setPhoto(file) {
+    if (currentUrl) URL.revokeObjectURL(currentUrl);
+    currentUrl = URL.createObjectURL(file);
+    photo.classList.remove('placeholder');
+    photo.style.backgroundImage = 'url("' + currentUrl + '")';
+  }
+
+  // ── Scan ─────────────────────────────────────────────────────────────
+  let stepTimers = [];
+  function setStep(name, pct) {
+    const order = ['upload', 'identify', 'price'];
+    const idx = order.indexOf(name);
+    document.querySelectorAll('#steps li').forEach((li, i) => { li.dataset.done = String(i < idx); li.dataset.active = String(i === idx); });
+    $('#bar').style.width = pct + '%';
+  }
+  async function scan() {
+    if (!currentFile) return;
+    samplesEl.querySelectorAll('.sample').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    startScanVisuals({ fast: false });
+    track('scan_started', { file_size_bytes: currentFile.size });
+    try {
+      const fd = new FormData(); fd.append('hint', currentHint); fd.append('photo', currentFile);
+      const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        // Keep server internals out of the UI; 4xx messages are user-facing (bad file, too big).
+        throw new Error(res.status >= 500 || !data.error ? 'Our analyser is unavailable right now.' : data.error);
+      }
+      stepTimers.forEach(clearTimeout); setStep('price', 100);
+      store.used = store.used + 1;
+      track('scan_completed', { material_count: (data.materials || []).length, total_value_usd: data.summary && data.summary.total_value_usd });
+      showResult(data, { sampleTicket: false });
+    } catch (err) {
+      stepTimers.forEach(clearTimeout);
+      showError(err.message);
+    }
+  }
+  function startScanVisuals({ fast }) {
+    setState('scanning'); setStep('upload', 12);
+    stepTimers.forEach(clearTimeout);
+    stepTimers = fast
+      ? [setTimeout(() => setStep('identify', 45), 450), setTimeout(() => setStep('price', 80), 1100)]
+      : [setTimeout(() => setStep('identify', 45), 900), setTimeout(() => setStep('price', 80), 2600)];
+    // Detection blips inside the frame, staggered so they appear as the beam passes.
+    const blips = $('#blips'); blips.replaceChildren();
+    const n = fast ? 5 : 7, gap = fast ? 220 : 260;
+    for (let i = 0; i < n; i++) {
+      const b = el('i', { className: 'blip' });
+      b.style.left = (12 + Math.random() * 72) + '%'; b.style.top = (16 + Math.random() * 52) + '%';
+      b.style.setProperty('--d', (200 + i * gap) + 'ms');
+      blips.append(b);
+    }
+  }
+  function showError(msg) { $('#error-msg').textContent = msg; setState('error'); }
+
+  // ── Wall (lead) ──────────────────────────────────────────────────────
+  $('#wall-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $('#lead-name'), email = $('#lead-email');
+    const setErr = (input, node, msg) => { input.setAttribute('aria-invalid', msg ? 'true' : 'false'); node.textContent = msg || ''; node.hidden = !msg; };
+    setErr(name, $('#err-name'), name.value.trim() ? '' : 'Add your name.');
+    setErr(email, $('#err-email'), /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()) ? '' : 'Enter a work email, like jane@company.com.');
+    const firstBad = [name, email].find(i => i.getAttribute('aria-invalid') === 'true');
+    if (firstBad) { firstBad.focus(); return; }
+    const btn = $('#wall-submit'), formErr = $('#err-form');
+    btn.disabled = true; btn.textContent = 'Unlocking…'; formErr.hidden = true;
+    try {
+      const res = await fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.value.trim(), email: email.value.trim(), scan_data: lastResult, source: SOURCE }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || 'Could not save your details.');
+      store.unlocked = true;
+      track('lead_submitted', {});
+      if (currentFile) { setState('check'); onFile(currentFile); } else setState('idle');
+    } catch (err) {
+      formErr.textContent = err.message + ' Please try again.'; formErr.hidden = false;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Unlock 10 scans';
+    }
+  });
+
+
+  // ── Ticket → PNG ─────────────────────────────────────────────────────
+  // Redraws the ticket on a canvas from the result data, so the download is
+  // a clean image (not a print of the page) and can be shared anywhere.
+  async function downloadTicket(btn) {
+    if (!lastResult) return;
+    const label = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
+    try {
+      await document.fonts.ready;
+      const data = lastResult, mats = data.materials || [];
+      const S = 2, W = 420, PAD = 28, BG = 40;
+      const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+      const colour = (k) => { const v = binColor(k).match(/var\((--[^)]+)\)/); return v ? css(v[1]) : '#3A403B'; };
+      const lineH = 22, ticketH = 150 + mats.length * lineH + 210;
+      const cv = document.createElement('canvas');
+      cv.width = (W + BG * 2) * S; cv.height = (ticketH + BG * 2) * S;
+      const x = cv.getContext('2d'); x.scale(S, S);
+      x.fillStyle = css('--ground') || '#E7E8E4'; x.fillRect(0, 0, W + BG * 2, ticketH + BG * 2);
+      x.translate(BG, BG);
+      // paper + shadow
+      x.save(); x.shadowColor = 'rgba(18,22,19,0.22)'; x.shadowBlur = 24; x.shadowOffsetY = 10;
+      x.fillStyle = '#fff'; x.fillRect(0, 0, W, ticketH); x.restore();
+      // perforated top edge
+      x.fillStyle = css('--ground') || '#E7E8E4';
+      for (let px = 11; px < W; px += 22) { x.beginPath(); x.arc(px, 0, 4, 0, Math.PI * 2); x.fill(); }
+      const ink = '#121613', muted = '#5F665F', mono = (w, sz) => `${w} ${sz}px "Space Mono", ui-monospace, monospace`;
+      const dashed = (yy) => { x.save(); x.strokeStyle = ink; x.setLineDash([4, 3]); x.beginPath(); x.moveTo(PAD, yy); x.lineTo(W - PAD, yy); x.stroke(); x.restore(); };
+      let y = 46;
+      x.textAlign = 'center'; x.fillStyle = ink; x.font = mono(700, 15); x.fillText('WASTESCOPE', W / 2, y);
+      x.fillStyle = muted; x.font = mono(400, 11);
+      const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+      x.fillText((lastSample ? 'SAMPLE TICKET' : 'YOUR TICKET') + ' · No ' + String(ticketNo).padStart(4, '0'), W / 2, y += 22);
+      x.fillText(date + ' · US MARKET', W / 2, y += 17);
+      dashed(y += 18);
+      y += 26; x.font = mono(400, 12);
+      mats.forEach(m => {
+        x.fillStyle = colour(m.material_key); x.fillRect(PAD, y - 9, 8, 8);
+        x.fillStyle = ink; x.textAlign = 'left';
+        x.fillText(((m.label || m.material_key) + ' ' + Math.round(m.weight_kg) + 'KG').toUpperCase(), PAD + 16, y);
+        x.textAlign = 'right'; x.fillText(fmt2(m.value_usd), W - PAD, y);
+        y += lineH;
+      });
+      dashed(y += 2);
+      y += 40; x.textAlign = 'left'; x.font = mono(700, 13); x.fillText('TOTAL', PAD, y);
+      x.textAlign = 'right'; x.font = mono(700, 28); x.fillText(fmtUSD(data.summary.total_value_usd), W - PAD, y + 2);
+      y += 28; x.font = mono(400, 11); x.fillStyle = muted;
+      x.textAlign = 'left'; x.fillText('CO2 AVOIDED', PAD, y); x.textAlign = 'right'; x.fillText(Math.round(data.summary.total_co2_avoided_kg) + ' kg', W - PAD, y);
+      // stamp
+      x.save(); x.translate(W - PAD - 62, y + 40); x.rotate(-8 * Math.PI / 180);
+      x.strokeStyle = css('--ok') || '#2F7D45'; x.fillStyle = x.strokeStyle; x.lineWidth = 2;
+      x.strokeRect(-58, -14, 116, 28); x.font = mono(700, 12); x.textAlign = 'center'; if ('letterSpacing' in x) x.letterSpacing = '2px'; x.fillText('ESTIMATE', 0, 5); x.restore();
+      dashed(y += 78);
+      x.fillStyle = ink; x.textAlign = 'center'; x.font = mono(400, 11);
+      x.fillText('GET REAL OFFERS → WASTETIDE.AI', W / 2, y += 26);
+      x.fillStyle = muted; x.font = mono(400, 9);
+      x.fillText('Estimate from reference prices — not a buyer offer.', W / 2, y += 18);
+      const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+      const a = el('a', { href: URL.createObjectURL(blob), download: 'wastescope-ticket-' + String(ticketNo).padStart(4, '0') + '.png' });
+      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } finally {
+      btn.disabled = false; btn.textContent = label;
+    }
+  }
+
+  // ── Wiring ───────────────────────────────────────────────────────────
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-action]'); if (!t) return;
+    const a = t.dataset.action;
+    if (a === 'choose') { clearTimeout(autoScanTimer); fileInput.click(); }
+    if (a === 'camera') cameraInput.click();
+    if (a === 'retry') scan();
+    if (a === 'download') { track('form_submitted', { action: 'download_ticket' }); downloadTicket(t); }
+  });
+  $('#scan-btn').addEventListener('click', scan);
+  [fileInput, cameraInput].forEach(inp => inp.addEventListener('change', () => { onFile(inp.files[0]); inp.value = ''; }));
+  ['dragenter', 'dragover'].forEach(ev => screen.addEventListener(ev, (e) => { e.preventDefault(); screen.classList.add('dragover'); }));
+  ['dragleave', 'drop'].forEach(ev => screen.addEventListener(ev, (e) => { e.preventDefault(); screen.classList.remove('dragover'); }));
+  screen.addEventListener('drop', (e) => onFile(e.dataTransfer.files[0]));
+
+  const samplesEl = $('#samples');
+  let sampleTimer = null;
+  function runSample(s, btn) {
+    if (screen.dataset.state === 'scanning') return;
+    clearTimeout(sampleTimer);
+    currentFile = null;
+    samplesEl.querySelectorAll('.sample').forEach(x => x.setAttribute('aria-pressed', String(x === btn)));
+    photo.classList.remove('placeholder');
+    photo.style.backgroundImage = ART[s.id];
+    $('#scan-notes').hidden = true;
+    startScanVisuals({ fast: true });
+    // Same animation as a real scan, shorter, no API call and no free scan used.
+    sampleTimer = setTimeout(() => { stepTimers.forEach(clearTimeout); setStep('price', 100); showResult(s.data, { sampleTicket: true }); }, 1700);
+  }
+  SAMPLES.forEach(s => {
+    const thumb = el('span', { className: 'thumb' }); thumb.style.setProperty('--art', ART[s.id]);
+    const b = el('button', { type: 'button', className: 'sample', ariaPressed: 'false', ariaLabel: 'Try sample: ' + s.label },
+      thumb, el('span', { className: 'name', textContent: s.label, title: s.label }), el('span', { className: 'val', textContent: '≈ ' + fmtUSD(s.data.summary.total_value_usd) }));
+    b.addEventListener('click', () => runSample(s, b));
+    samplesEl.append(b);
+  });
+
+  // Initial: show the sample ticket so the stage is never empty.
+  setState('idle');
+  renderTicket(SAMPLES[0].data, { sampleTicket: true, animate: false });
+  track('page_view', { path: '/wastescope' });
+})();
+</script>
+</body>
+</html>
